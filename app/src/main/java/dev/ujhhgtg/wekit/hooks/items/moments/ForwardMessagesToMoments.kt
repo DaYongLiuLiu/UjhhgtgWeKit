@@ -1,13 +1,12 @@
 package dev.ujhhgtg.wekit.hooks.items.moments
 
-import dev.ujhhgtg.wekit.R
 import dev.ujhhgtg.wekit.constants.PackageNames
 import dev.ujhhgtg.wekit.hooks.api.core.WeServiceApi
 import dev.ujhhgtg.wekit.hooks.api.core.models.MessageType
 import dev.ujhhgtg.wekit.hooks.api.ui.WeChatMessageContextMenuApi
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
-import dev.ujhhgtg.wekit.utils.ModuleRes
+import dev.ujhhgtg.wekit.ui.utils.CameraIcon
 import dev.ujhhgtg.wekit.utils.android.Intent
 import dev.ujhhgtg.wekit.utils.removeWxIdPrefix
 
@@ -32,7 +31,7 @@ object ForwardMessagesToMoments : SwitchHookItem(), WeChatMessageContextMenuApi.
     override fun getMenuItems(): List<WeChatMessageContextMenuApi.MenuItem> {
         return listOf(
             WeChatMessageContextMenuApi.MenuItem(
-                777009, "转圈", { ModuleRes.getDrawable(R.drawable.camera_24px)!! },
+                777009, "转圈", { CameraIcon },
                 shouldShow = { it.type in SUPPORTED_MSG_TYPES },
                 onClick = { _, chattingContext, msgInfo ->
                     val activity = chattingContext.activity

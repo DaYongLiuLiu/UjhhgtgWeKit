@@ -22,7 +22,7 @@ object ParcelableFixer {
         if (initialized) return
         initialized = true
 
-        this.hybridClassLoader = object : ClassLoader(ClassLoaders.HOST) {
+        hybridClassLoader = object : ClassLoader(ClassLoaders.HOST) {
             override fun findClass(name: String): Class<*> = ClassLoaders.MODULE.loadClass(name)
         }
 

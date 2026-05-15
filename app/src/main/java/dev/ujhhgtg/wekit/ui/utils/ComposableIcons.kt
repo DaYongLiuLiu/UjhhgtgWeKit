@@ -7,8 +7,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 
-val GitHubIcon
-    get() = ImageVector.Builder(
+val GitHubIcon by lazy {
+    ImageVector.Builder(
         name = "GitHubIcon",
         defaultWidth = 24.0.dp,
         defaultHeight = 24.0.dp,
@@ -47,9 +47,10 @@ val GitHubIcon
             close()
         }
     }.build()
+}
 
-val TelegramIcon
-    get() = ImageVector.Builder(
+val TelegramIcon by lazy {
+    ImageVector.Builder(
         name = "TelegramIcon",
         defaultWidth = 24.0.dp,
         defaultHeight = 24.0.dp,
@@ -83,3 +84,4 @@ val TelegramIcon
             close()
         }
     }.build()
+}

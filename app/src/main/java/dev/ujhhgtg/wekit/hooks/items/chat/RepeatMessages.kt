@@ -1,12 +1,11 @@
 package dev.ujhhgtg.wekit.hooks.items.chat
 
-import dev.ujhhgtg.wekit.R
 import dev.ujhhgtg.wekit.hooks.api.core.WeMessageApi
 import dev.ujhhgtg.wekit.hooks.api.core.models.MessageType
 import dev.ujhhgtg.wekit.hooks.api.ui.WeChatMessageContextMenuApi
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
-import dev.ujhhgtg.wekit.utils.ModuleRes
+import dev.ujhhgtg.wekit.ui.utils.ExposurePlus1Icon
 import dev.ujhhgtg.wekit.utils.android.showToast
 import dev.ujhhgtg.wekit.utils.removeWxIdPrefix
 
@@ -29,7 +28,7 @@ object RepeatMessages : SwitchHookItem(), WeChatMessageContextMenuApi.IMenuItems
     override fun getMenuItems(): List<WeChatMessageContextMenuApi.MenuItem> {
         return listOf(
             WeChatMessageContextMenuApi.MenuItem(
-                777008, "复读", { ModuleRes.getDrawable(R.drawable.exposure_plus_1_24px)!! },
+                777008, "复读", { ExposurePlus1Icon },
                 shouldShow = { it.type in SUPPORTED_MSG_TYPES },
                 onClick = { view, _, msgInfo ->
                     val context = view.context

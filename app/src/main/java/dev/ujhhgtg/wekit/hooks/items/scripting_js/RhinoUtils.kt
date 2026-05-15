@@ -7,7 +7,7 @@ import org.mozilla.javascript.ScriptableObject
 
 inline fun Context.init(talker: String? = null): ScriptableObject {
     this.isInterpretedMode = true
-    val scope = this.initStandardObjects()
+    val scope = initStandardObjects()
     JsApiExposer.exposeApis(scope, talker)
     return scope
 }
