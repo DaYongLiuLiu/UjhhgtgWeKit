@@ -29,18 +29,29 @@ abstract class BaseHookItem {
 
     fun enable() {
         if (hasEnabled) return
+
         runCatching {
             hasEnabled = true
             onEnable()
-        }.onFailure { e -> WeLogger.e(TAG, "failed to enable item", e) }
+        }.onFailure { e ->
+            WeLogger.e(TAG, "failed to enable item", e)
+            // ensure transaction is fully discarded
+            unhookAll()
+            hasEnabled = false
+        }
     }
 
     fun disable() {
         if (!hasEnabled) return
+
         runCatching {
             hasEnabled = false
+            unhookAll()
             onDisable()
-        }.onFailure { e -> WeLogger.e(TAG, "failed to disable item", e) }
+        }.onFailure { e ->
+            WeLogger.e(TAG, "failed to disable item", e)
+            hasEnabled = true
+        }
     }
 
     open fun onEnable() {}
@@ -53,12 +64,21 @@ abstract class BaseHookItem {
         _dexDelegates += d
     }
 
+    internal val unhooks = mutableListOf<XC_MethodHook.Unhook>()
+    internal fun registerUnhook(u: XC_MethodHook.Unhook) {
+        unhooks += u
+    }
+    internal fun unhookAll() {
+        unhooks.forEach { it.unhook() }
+        unhooks.clear()
+    }
+
     // --- hookBefore ---
 
-    inline fun Executable.hookBefore(
+    internal inline fun Executable.hookBefore(
         priority: Int = 50,
         crossinline action: HookAction
-    ): XC_MethodHook.Unhook = XposedBridge.hookMethod(
+    ) = registerUnhook(XposedBridge.hookMethod(
         this,
         object :
             XC_MethodHook(priority) {
@@ -66,33 +86,33 @@ abstract class BaseHookItem {
                 executeHookAction(param, action)
             }
         }
-    )
+    ))
 
     @JvmName("hookBefore2")
-    inline fun MethodResolver<*>.hookBefore(
+    internal inline fun MethodResolver<*>.hookBefore(
         priority: Int = 50,
         crossinline action: HookAction
     ) = this.self.hookBefore(priority, action)
 
     @JvmName("hookBefore3")
-    inline fun ConstructorResolver<*>.hookBefore(
+    internal inline fun ConstructorResolver<*>.hookBefore(
         priority: Int = 50,
         crossinline action: HookAction
     ) = this.self.hookBefore(priority, action)
 
-    inline fun Class<*>.hookBeforeOnCreate(
+    internal inline fun Class<*>.hookBeforeOnCreate(
         crossinline action: HookAction
     ) = this.asResolver().firstMethod { name = "onCreate" }.hookBefore(50, action)
 
-    inline fun Class<*>.hookAfterOnCreate(
+    internal inline fun Class<*>.hookAfterOnCreate(
         crossinline action: HookAction
     ) = this.asResolver().firstMethod { name = "onCreate" }.hookAfter(50, action)
 
-    inline fun KClass<*>.hookBeforeOnCreate(
+    internal inline fun KClass<*>.hookBeforeOnCreate(
         crossinline action: HookAction
     ) = this.asResolver().firstMethod { name = "onCreate" }.hookBefore(50, action)
 
-    inline fun KClass<*>.hookAfterOnCreate(
+    internal inline fun KClass<*>.hookAfterOnCreate(
         crossinline action: HookAction
     ) = this.asResolver().firstMethod { name = "onCreate" }.hookAfter(50, action)
 
@@ -100,10 +120,10 @@ abstract class BaseHookItem {
 
     // --- hookAfter ---
 
-    inline fun Executable.hookAfter(
+    internal inline fun Executable.hookAfter(
         priority: Int = 50,
         crossinline action: HookAction
-    ): XC_MethodHook.Unhook = XposedBridge.hookMethod(
+    ) = registerUnhook(XposedBridge.hookMethod(
         this,
         object :
             XC_MethodHook(priority) {
@@ -111,16 +131,16 @@ abstract class BaseHookItem {
                 executeHookAction(param, action)
             }
         }
-    )
+    ))
 
     @JvmName("hookAfter2")
-    inline fun MethodResolver<*>.hookAfter(
+    internal inline fun MethodResolver<*>.hookAfter(
         priority: Int = 50,
         crossinline action: HookAction
     ) = this.self.hookAfter(priority, action)
 
     @JvmName("hookAfter3")
-    inline fun ConstructorResolver<*>.hookAfter(
+    internal inline fun ConstructorResolver<*>.hookAfter(
         priority: Int = 50,
         crossinline action: HookAction
     ) = this.self.hookAfter(priority, action)
@@ -129,31 +149,29 @@ abstract class BaseHookItem {
 
     // --- dex delegate ---
 
-    inline fun DexMethodDelegate.hookBefore(
+    internal inline fun DexMethodDelegate.hookBefore(
         priority: Int = 50,
         crossinline action: HookAction
     ) = method.hookBefore(priority, action)
 
-    inline fun DexMethodDelegate.hookAfter(
+    internal inline fun DexMethodDelegate.hookAfter(
         priority: Int = 50,
         crossinline action: HookAction
     ) = method.hookAfter(priority, action)
 
-    inline fun DexConstructorDelegate.hookBefore(
+    internal inline fun DexConstructorDelegate.hookBefore(
         priority: Int = 50,
         crossinline action: HookAction
     ) = constructor.hookBefore(priority, action)
 
-    inline fun DexConstructorDelegate.hookAfter(
+    internal inline fun DexConstructorDelegate.hookAfter(
         priority: Int = 50,
         crossinline action: HookAction
     ) = constructor.hookAfter(priority, action)
 
     // --- end dex delegate ---
 
-    inline fun executeHookAction(param: XC_MethodHook.MethodHookParam, action: HookAction) {
-        if (this is SwitchHookItem && !this.isEnabled) return
-        if (!hasEnabled) return
+    internal inline fun executeHookAction(param: XC_MethodHook.MethodHookParam, action: HookAction) {
         runCatching {
             action(param)
         }.onFailure { e -> WeLogger.e("executeHookAction", "failed to execute hook of $path", e) }

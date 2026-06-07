@@ -526,7 +526,7 @@ private fun AppContent(resultLauncher: ActivityResultLauncher<String>, onUrlClic
             LinkCard(
                 icon = GitHubIcon,
                 title = "GitHub",
-                subtitle = "修改于 Ujhhgtg/WeKit (原始: cwuom/WeKit)",
+                subtitle = "Ujhhgtg/WeKit",
                 onClick = { onUrlClick("https://github.com/Ujhhgtg/WeKit") }
             )
             LinkCard(

@@ -16,6 +16,7 @@ import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.hooks.core.ApiHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.utils.WeLogger
+import dev.ujhhgtg.wekit.utils.hookBeforeDirectly
 import dev.ujhhgtg.wekit.utils.reflection.BBool
 import dev.ujhhgtg.wekit.utils.reflection.BInt
 import dev.ujhhgtg.wekit.utils.reflection.BString
@@ -88,10 +89,10 @@ object WeHomeScreenPopupMenuApi : ApiHookItem(), IResolvesDex {
                 hookBefore {
                     unhook = ImageView::class.asResolver().firstMethod {
                         name = "setImageResource"
-                    }.hookBefore {
+                    }.hookBeforeDirectly {
                         val fakeResId = args[0] as Int
                         val imageView = thisObject as ImageView
-                        imageView.setImageDrawable(fakeResIdToResMap[fakeResId] ?: return@hookBefore)
+                        imageView.setImageDrawable(fakeResIdToResMap[fakeResId] ?: return@hookBeforeDirectly)
                         result = null
                     }
                 }

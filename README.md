@@ -8,7 +8,7 @@
 
 [![CI](https://github.com/Ujhhgtg/WeKit/actions/workflows/ci.yml/badge.svg)](https://github.com/Ujhhgtg/WeKit/actions/workflows/ci.yml)
 
-## 修改内容 (相比上游)
+## 修改内容 (相比[上游](https://github.com/cwuom/WeKit))
 
 - 添加 WAuxiliary 与 NewMiko 目前公开源代码中的部分功能
 - 移除全部校验, 减少模块体积, 避免不必要性能开销

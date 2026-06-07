@@ -406,7 +406,7 @@ class MainSettingsDialog(context: Context) : BasePrefsDialog(context, BuildConfi
         )
         addPreference(
             title = "GitHub",
-            summary = "修改于 Ujhhgtg/WeKit (原始: cwuom/WeKit)",
+            summary = "Ujhhgtg/WeKit",
             icon = GitHubIcon,
             onClick = { "https://github.com/Ujhhgtg/WeKit".toUri().openInSystem(context, true) }
         )

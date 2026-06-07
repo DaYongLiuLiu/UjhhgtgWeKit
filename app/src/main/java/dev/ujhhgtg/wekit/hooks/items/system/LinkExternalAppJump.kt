@@ -1,13 +1,11 @@
 package dev.ujhhgtg.wekit.hooks.items.system
 
 import android.annotation.SuppressLint
-import android.app.ActivityOptions
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.net.Uri
-import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -38,7 +36,7 @@ import com.composables.icons.materialsymbols.outlined.Language
 import com.composables.icons.materialsymbols.outlined.Open_in_new
 import com.tencent.mm.ui.LauncherUI
 import de.robv.android.xposed.XC_MethodHook
-import dev.ujhhgtg.comptime.nameOf
+import dev.ujhhgtg.comptime.This
 import dev.ujhhgtg.wekit.hooks.api.ui.WeStartActivityApi
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
@@ -57,7 +55,7 @@ import dev.ujhhgtg.wekit.utils.openInSystem
 object LinkExternalAppJump : SwitchHookItem(),
     WeStartActivityApi.IStartActivityListener {
 
-    private val TAG = nameOf(LinkExternalAppJump)
+    private val TAG = This.Class.simpleName
 
     private val WECHAT_INTERNAL_HOSTS = setOf(
         "weixin.com",
@@ -267,11 +265,6 @@ object LinkExternalAppJump : SwitchHookItem(),
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
 
-        val activityOptions = ActivityOptions.makeBasic()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            activityOptions.setShareIdentityEnabled(false)
-        }
-
-        context.startActivity(finalIntent, activityOptions.toBundle())
+        context.startActivity(finalIntent)
     }
 }
