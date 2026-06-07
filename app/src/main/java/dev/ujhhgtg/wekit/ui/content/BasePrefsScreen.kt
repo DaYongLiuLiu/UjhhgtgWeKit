@@ -3,12 +3,12 @@ package dev.ujhhgtg.wekit.ui.content
 import android.content.Context
 import android.text.InputType
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -50,8 +50,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -242,11 +243,11 @@ abstract class BasePrefsScreen(private val title: String) {
     fun ActivityContent(activity: ComponentActivity, onBack: () -> Unit) {
         val (compiledRows, compiledDeps) = rememberPreparedPreferences()
 
-        CompositionLocalProvider(LocalContext provides activity,
+        CompositionLocalProvider(
+            LocalContext provides activity,
             LocalActivity provides activity
         ) {
             AppTheme {
-                BackHandler(onBack = onBack)
                 Scaffold(
                     topBar = {
                         TopAppBar(
@@ -264,13 +265,21 @@ abstract class BasePrefsScreen(private val title: String) {
                         )
                     }
                 ) { paddingValues ->
-                    PreferenceCoreList(
-                        rows = compiledRows,
-                        dependencies = compiledDeps,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues)
-                    )
+                    Box(modifier = Modifier
+                        .clearAndSetSemantics {
+                            stateDescription = ""
+                        }
+                        .semantics(mergeDescendants = true) {
+                            stateDescription = ""
+                        }.fillMaxSize()) {
+                        PreferenceCoreList(
+                            rows = compiledRows,
+                            dependencies = compiledDeps,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(paddingValues)
+                        )
+                    }
                 }
             }
         }
@@ -551,7 +560,7 @@ private fun PreferenceCoreList(
             onConfirm = { newValue ->
                 WePrefs.putString(row.configKey, newValue)
                 summaryStates[row.configKey] = row.summaryFormatter?.invoke(newValue) ?: if (newValue.isEmpty()) row.baseSummary else "${row.baseSummary}: $newValue"
-                WeLogger.d(TAG, "Config changed [${row.configKey}] -> $newValue")
+                WeLogger.d(TAG, "config changed [${row.configKey}] -> $newValue")
                 inputDialogRow = null
             },
             onDismiss = { inputDialogRow = null },
@@ -564,7 +573,7 @@ private fun PreferenceCoreList(
             onSelect = { value, displayText ->
                 WePrefs.putInt(row.configKey, value)
                 summaryStates[row.configKey] = displayText
-                WeLogger.d(TAG, "Config changed [${row.configKey}] -> $value")
+                WeLogger.d(TAG, "config changed [${row.configKey}] -> $value")
                 selectDialogRow = null
             },
             onDismiss = { selectDialogRow = null },
@@ -611,11 +620,7 @@ private fun SwitchRow(row: PrefRow.Switch, checked: Boolean, enabled: Boolean, o
             }
         }
         Spacer(Modifier.width(8.dp))
-        Switch(checked = checked, onCheckedChange = if (enabled) onCheckedChange else null, enabled = enabled,
-            // FIXME: see androidx.compose.ui.platform.AndroidComposeViewAccessibilityDelegateCompat.android.kt line 3484
-            modifier = Modifier.semantics(properties = {
-                set(SemanticsProperties.StateDescription, "fuckyougoogle")
-            }))
+        Switch(checked = checked, onCheckedChange = if (enabled) onCheckedChange else null, enabled = enabled)
     }
 }
 

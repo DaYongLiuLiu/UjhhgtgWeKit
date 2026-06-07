@@ -287,6 +287,7 @@ dependencies {
     implementation(libs.hiddenapibypass)
     implementation(libs.kavaref.core)
     implementation(libs.kavaref.extension)
+    implementation(libs.kavaref.android)
     implementation(libs.libsu.core)
     implementation(libs.dexmaker)
     @Suppress("AvoidDuplicateDependencies")
@@ -325,6 +326,13 @@ dependencies {
 // markwon conflict
 configurations.all {
     exclude(group = "org.jetbrains", module = "annotations-java5")
+
+//    resolutionStrategy {
+//        force("androidx.compose.ui:ui:1.12.0-beta01")
+//        force("androidx.compose.ui:ui-android:1.12.0-beta01")
+//        force("androidx.compose.material3:material3:1.5.0-alpha21")
+//        force("androidx.compose.material3:material3-android:1.5.0-alpha21")
+//    }
 }
 
 evaluationDependsOn(":libs:external:comptime-kt:plugin")

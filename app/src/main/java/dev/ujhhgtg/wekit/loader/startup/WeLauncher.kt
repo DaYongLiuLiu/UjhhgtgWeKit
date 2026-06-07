@@ -2,6 +2,7 @@ package dev.ujhhgtg.wekit.loader.startup
 
 import android.app.Activity
 import android.content.Context
+import android.content.res.Resources
 import android.os.Bundle
 import com.tencent.mm.ui.LauncherUI
 import dev.ujhhgtg.comptime.This
@@ -15,6 +16,10 @@ import dev.ujhhgtg.wekit.utils.RuntimeConfig
 import dev.ujhhgtg.wekit.utils.TargetProcesses
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.hookAfterDirectly
+import dev.ujhhgtg.wekit.utils.hookBeforeDirectly
+import dev.ujhhgtg.wekit.utils.invokeOriginal
+import dev.ujhhgtg.wekit.utils.reflection.asResolver
+import dev.ujhhgtg.wekit.utils.reflection.int
 import dev.ujhhgtg.wekit.utils.reflection.resolve
 
 object WeLauncher {
@@ -39,6 +44,14 @@ object WeLauncher {
     }
 
     private fun initMainProcessHooks() {
+        // fix up Jetpack Compose
+        Resources::class.asResolver().firstMethod {
+            name = "getString"
+            parameters(int)
+        }.hookBeforeDirectly {
+            result = runCatching { invokeOriginal() }.getOrNull() ?: "null"
+        }
+
         LauncherUI::class.resolve().apply {
             // FIXME: see BasePrefsScreen line 298
 //            firstMethod { name = "onCreate" }.hookBeforeDirectly {

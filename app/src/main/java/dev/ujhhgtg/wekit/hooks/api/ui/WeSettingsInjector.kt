@@ -484,7 +484,7 @@ object WeSettingsInjector : ApiHookItem(), IResolvesDex, WeHomeScreenPopupMenuAp
 
     @Suppress("NOTHING_TO_INLINE")
     private inline fun openSettingsDialog(context: Context) {
-        MainSettingsScreen(context).show(context)
+        MainSettingsScreen().show(context)
     }
 
 //    private class SettingsMenuItemClickListener(val context: Context) :

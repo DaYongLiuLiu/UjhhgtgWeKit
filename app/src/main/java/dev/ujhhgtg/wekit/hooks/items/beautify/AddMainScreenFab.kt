@@ -137,7 +137,7 @@ object AddMainScreenFab : SwitchHookItem() {
                     )
                 }),
                 "模块设置" to (MaterialSymbols.OutlinedFilled.Extension to {
-                    MainSettingsScreen(activity).show(activity)
+                    MainSettingsScreen().show(activity)
                 }),
                 "强制停止" to (MaterialSymbols.OutlinedFilled.Cancel to {
                     exitProcess(0)

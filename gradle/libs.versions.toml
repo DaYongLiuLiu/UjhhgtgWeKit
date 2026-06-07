@@ -19,7 +19,7 @@ lombok = "1.18.46"
 google-protobuf = "4.35.0"
 ksp = "2.3.9"
 okhttp = "5.3.2"
-kavaref = "1.0.3"
+kavaref = "1.1.0"
 hidden-api-bypass = "6.1"
 runtime = "1.11.2"
 # noinspection GradleDependency
@@ -31,7 +31,7 @@ aboutlibraries = "14.2.1"
 kotlinpoet = "2.3.0"
 biometric = "1.2.0-alpha05"
 browser = "1.10.0"
-miuix = "0.9.1-5e75455e-SNAPSHOT"
+miuix = "0.9.2"
 markwon = "4.6.2"
 annotation = "1.10.0"
 mcp-server = "0.13.0"
@@ -56,6 +56,7 @@ ndk = "30.0.14904198"
 [libraries]
 androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
 androidx-compose-foundation = { module = "androidx.compose.foundation:foundation" }
+#androidx-compose-material3 = { module = "androidx.compose.material3:material3" } # use local-maven version
 androidx-compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "compose-material3" }
 androidx-compose-ui = { module = "androidx.compose.ui:ui" }
 androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycle-runtime" }
@@ -99,6 +100,7 @@ dexmaker = { module = "com.linkedin.dexmaker:dexmaker", version.ref = "dexmaker"
 hiddenapibypass = { module = "org.lsposed.hiddenapibypass:hiddenapibypass", version.ref = "hidden-api-bypass" }
 kavaref-core = { module = "com.highcapable.kavaref:kavaref-core", version.ref = "kavaref" }
 kavaref-extension = { module = "com.highcapable.kavaref:kavaref-extension", version.ref = "kavaref" }
+kavaref-android = { module = "com.highcapable.kavaref:kavaref-android", version.ref = "kavaref" }
 libsu-core = { module = "com.github.topjohnwu.libsu:core", version.ref = "libsu" }
 libxposed-service = { module = "io.github.libxposed:service", version.ref = "libxposed" }
 

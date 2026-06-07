@@ -1,33 +1,14 @@
 package dev.ujhhgtg.wekit.ui.content
 
-import android.content.Context
 import android.content.Intent
+import androidx.activity.compose.LocalActivity
+import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
 import com.composables.icons.materialsymbols.MaterialSymbols
@@ -56,17 +37,18 @@ import com.composables.icons.materialsymbols.outlined.Update
 import com.composables.icons.materialsymbols.outlined.Upload
 import com.composables.icons.materialsymbols.outlined.Volunteer_activism
 import com.composables.icons.materialsymbols.outlined.Wand_stars
-import com.mikepenz.aboutlibraries.Libs
-import com.mikepenz.aboutlibraries.entity.Library
 import com.tencent.mm.ui.LauncherUI
 import dev.ujhhgtg.wekit.BuildConfig
-import dev.ujhhgtg.wekit.aboutlibraries.AboutLibrariesProvider
+import dev.ujhhgtg.wekit.activity.StandardActivity
 import dev.ujhhgtg.wekit.activity.TransparentActivity
 import dev.ujhhgtg.wekit.constants.PackageNames
 import dev.ujhhgtg.wekit.constants.Preferences
 import dev.ujhhgtg.wekit.hooks.items.easter_egg.AprilFools
 import dev.ujhhgtg.wekit.hooks.items.easter_egg.isAprilFools
 import dev.ujhhgtg.wekit.preferences.WePrefs
+import dev.ujhhgtg.wekit.ui.content.aboutlibraries.AboutLibrariesScreen
+import dev.ujhhgtg.wekit.ui.content.aboutlibraries.LibrariesPanel
+import dev.ujhhgtg.wekit.ui.utils.AppTheme
 import dev.ujhhgtg.wekit.ui.utils.GitHubIcon
 import dev.ujhhgtg.wekit.ui.utils.TelegramIcon
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
@@ -102,8 +84,7 @@ import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.put
 import java.time.LocalDate
 
-class MainSettingsScreen(private val context: Context)
-    : BasePrefsScreen(BuildConfig.TAG) {
+class MainSettingsScreen : BasePrefsScreen(BuildConfig.TAG) {
 
     override fun initPreferences() {
         if (LocalDate.now().isAprilFools) {
@@ -138,7 +119,7 @@ class MainSettingsScreen(private val context: Context)
             addPreference(
                 title = name, icon = icon,
                 onClick = {
-                    CategorySettingsScreen(context, name).show(context)
+                    CategorySettingsScreen(it, name).show(it)
                 }
             )
         }
@@ -178,7 +159,7 @@ class MainSettingsScreen(private val context: Context)
             title = "导出配置",
             summary = "将模块配置导出为 JSON",
             icon = MaterialSymbols.Outlined.Upload,
-            onClick = {
+            onClick = { context ->
                 TransparentActivity.launch(context) {
                     val exportLauncher = registerForActivityResult(
                         ActivityResultContracts.CreateDocument("application/json")
@@ -233,7 +214,7 @@ class MainSettingsScreen(private val context: Context)
             title = "导入配置",
             summary = "从 JSON 导入模块配置; JSON 中的配置将会与现有配置合并, 覆盖所有已存在的配置",
             icon = MaterialSymbols.Outlined.Download,
-            onClick = {
+            onClick = { context ->
                 TransparentActivity.launch(context) {
                     val importLauncher = registerForActivityResult(
                         ActivityResultContracts.OpenDocument()
@@ -287,7 +268,7 @@ class MainSettingsScreen(private val context: Context)
             summary = "清除全部模块配置 (警告: 此操作不可逆!)",
             icon = MaterialSymbols.Outlined.Delete_forever,
             onClick = {
-                showComposeDialog(context) {
+                showComposeDialog(it) {
                     AlertDialogContent(
                         title = { Text("清除模块配置") },
                         text = { Text("确定清除配置? (警告: 此操作不可逆!)") },
@@ -317,7 +298,7 @@ class MainSettingsScreen(private val context: Context)
                     when (val result = AppUpdater.checkForUpdate()) {
                         UpdateResult.UpToDate -> showToastSuspend("已是最新版本")
                         is UpdateResult.UpdateAvailable -> {
-                            showComposeDialog(context) {
+                            showComposeDialog(it) {
                                 AlertDialogContent(
                                     title = { Text("检测到新版本") },
                                     text = {
@@ -331,7 +312,7 @@ class MainSettingsScreen(private val context: Context)
                                         Button(onClick = {
                                             onDismiss()
                                             CoroutineScope(Dispatchers.Default).launch {
-                                                AppUpdater.downloadAndInstall(context, result.info)
+                                                AppUpdater.downloadAndInstall(it, result.info)
                                             }
                                         }) { Text("确定") }
                                     }
@@ -340,7 +321,7 @@ class MainSettingsScreen(private val context: Context)
                         }
                         is UpdateResult.Error -> {
                             WeLogger.e("AppUpdater", "failed to check for updates", result.cause)
-                            showComposeDialog(context) {
+                            showComposeDialog(it) {
                                 AlertDialogContent(
                                     title = { Text("检查更新失败") },
                                     text = { Text("错误信息: ${result.cause.message}") },
@@ -373,7 +354,7 @@ class MainSettingsScreen(private val context: Context)
             "捐赠",
             "支持项目开发 (模块完全开源免费, 捐赠无特权)",
             onClick = {
-                context.startActivity(Intent().apply {
+                it.startActivity(Intent().apply {
                     setClassName(HostInfo.packageName, "${PackageNames.WECHAT}.plugin.collect.reward.ui.QrRewardSelectMoneyUI")
                     putExtra("key_qrcode_url", "m0n#Z7LGW*s4AVH!z'd(?)")
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -386,22 +367,20 @@ class MainSettingsScreen(private val context: Context)
             summary = "本项目使用的开放源代码库许可",
             icon = MaterialSymbols.Outlined.License,
             onClick = {
-                showComposeDialog(context) {
-                    Surface(
-                        shape = MaterialTheme.shapes.extraLarge,
-                        tonalElevation = 6.dp
-                    ) {
-                        val libraries = remember {
-                            Libs.Builder().withJson(AboutLibrariesProvider.ABOUT_LIBRARIES_JSON).build()
-                        }
-                        val libraryList = libraries.libraries
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            items(libraryList) { library ->
-                                LibraryCard(library = library)
+                if (!Preferences.useActivityInsteadOfDialog) {
+                    showComposeDialog(it) {
+                        LibrariesPanel()
+                    }
+                } else {
+                    StandardActivity.launch(it) {
+                        setContent {
+                            CompositionLocalProvider(
+                                LocalContext provides this,
+                                LocalActivity provides this
+                            ) {
+                                AppTheme {
+                                    AboutLibrariesScreen { finish() }
+                                }
                             }
                         }
                     }
@@ -412,91 +391,13 @@ class MainSettingsScreen(private val context: Context)
             title = "GitHub",
             summary = "Ujhhgtg/WeKit",
             icon = GitHubIcon,
-            onClick = { "https://github.com/Ujhhgtg/WeKit".toUri().openInSystem(context, true) }
+            onClick = { "https://github.com/Ujhhgtg/WeKit".toUri().openInSystem(it, true) }
         )
         addPreference(
             title = "Telegram",
             summary = "@ujhhgtg_wekit_ci",
             icon = TelegramIcon,
-            onClick = { "https://t.me/ujhhgtg_wekit_ci".toUri().openInSystem(context, true) }
+            onClick = { "https://t.me/ujhhgtg_wekit_ci".toUri().openInSystem(it, true) }
         )
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun LibraryCard(library: Library) {
-    val authorName = library.developers.joinToString { it.name ?: "" }
-        .takeIf { it.isNotBlank() } ?: library.organization?.name
-
-    ElevatedCard(
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        ),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = library.name,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f)
-                )
-                library.artifactVersion?.let { version ->
-                    Text(
-                        text = version.take(20).let { if (version.length > 15) "$it…" else it },
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(start = 8.dp)
-                    )
-                }
-            }
-
-            authorName?.let {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            library.description?.takeIf { it.isNotBlank() }?.let {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-
-            if (library.licenses.isNotEmpty()) {
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    library.licenses.forEach { license ->
-                        Text(
-                            text = license.name,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.tertiary
-                        )
-                    }
-                }
-            }
-        }
     }
 }
