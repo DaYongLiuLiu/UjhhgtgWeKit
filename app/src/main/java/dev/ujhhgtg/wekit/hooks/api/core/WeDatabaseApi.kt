@@ -21,12 +21,18 @@ import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.reflection.BString
 import dev.ujhhgtg.wekit.utils.reflection.asResolver
 import dev.ujhhgtg.wekit.utils.reflection.int
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromByteArray
+import kotlinx.serialization.protobuf.ProtoBuf
+import kotlinx.serialization.protobuf.ProtoNumber
 import org.luckypray.dexkit.DexKitBridge
 import java.lang.reflect.Modifier
 
 /**
  * 微信数据库 API
  */
+@OptIn(ExperimentalSerializationApi::class)
 @SuppressLint("DiscouragedApi")
 @HookItem(name = "数据库服务", categories = ["API"], description = "提供数据库直接查询能力")
 object WeDatabaseApi : ApiHookItem(), IResolvesDex {
@@ -146,6 +152,14 @@ object WeDatabaseApi : ApiHookItem(), IResolvesDex {
             WHERE r.username LIKE '%@chatroom'
         """.trimIndent()
 
+        /** 单个群聊 */
+        fun group(wxId: String) = """
+            SELECT $GROUP_FIELDS
+            FROM rcontact r
+            $LEFT_JOIN_IMG_FLAG
+            WHERE r.username = '$wxId'
+        """.trimIndent()
+
         /** 获取群成员列表 */
         fun groupMembers(idsStr: String) = """
             SELECT $CONTACT_FIELDS
@@ -179,6 +193,49 @@ object WeDatabaseApi : ApiHookItem(), IResolvesDex {
             LIMIT $limit OFFSET $offset
         """.trimIndent()
 
+        /**
+         * 获取指定会话中特定发送者的消息
+         * 支持群聊（通过 content 匹配对方，或通过 isSend 匹配自己）与单聊
+         */
+        fun messagesFromSender(convId: String, senderId: String, limit: Int, offset: Int) = """
+            SELECT msgId, talker, content, type, createTime, isSend
+            FROM message
+            WHERE talker = '$convId'
+              AND (
+                  -- 情况 A: 群聊中其他人的消息，内容开头为 'senderId:'
+                  (isSend = 0 AND (content LIKE '$senderId:%' OR content LIKE '$senderId:%'))
+                  OR
+                  -- 情况 B: 自己发送的消息，且请求的 senderId 就是我自己
+                  (isSend = 1 AND '$senderId' = (SELECT value FROM userinfo WHERE id = 2))
+                  OR
+                  -- 情况 C: 单聊，且会话 ID 本身就是发送者 ID
+                  ('$convId' = '$senderId')
+              )
+            ORDER BY createTime DESC
+            LIMIT $limit OFFSET $offset
+        """.trimIndent()
+
+        /**
+         * 获取指定会话中特定发送者的消息
+         * 支持群聊（通过 content 匹配对方，或通过 isSend 匹配自己）与单聊
+         */
+        fun messagesFromSender(convId: String, senderId: String) = """
+            SELECT msgId, talker, content, type, createTime, isSend
+            FROM message
+            WHERE talker = '$convId'
+              AND (
+                  -- 情况 A: 群聊中其他人的消息，内容开头为 'senderId:'
+                  (isSend = 0 AND (content LIKE '$senderId:%' OR content LIKE '$senderId:%'))
+                  OR
+                  -- 情况 B: 自己发送的消息，且请求的 senderId 就是我自己
+                  (isSend = 1 AND '$senderId' = (SELECT value FROM userinfo WHERE id = 2))
+                  OR
+                  -- 情况 C: 单聊，且会话 ID 本身就是发送者 ID
+                  ('$convId' = '$senderId')
+              )
+            ORDER BY createTime DESC
+        """.trimIndent()
+
         // =========================================
         // 头像查询
         // =========================================
@@ -193,6 +250,21 @@ object WeDatabaseApi : ApiHookItem(), IResolvesDex {
         /** 获取群聊成员列表字符串 */
         const val GROUP_MEMBERS = "SELECT memberlist FROM chatroom WHERE chatroomname = '%s'"
     }
+
+    // =========================================
+    // protobuf: chatroom roomdata 解析
+    // =========================================
+
+    @Serializable
+    private data class ChatRoomMemberProto constructor(
+        @ProtoNumber(1) val wxid: String = "",
+        @ProtoNumber(2) val displayName: String = "",
+    )
+
+    @Serializable
+    private data class ChatRoomDataProto(
+        @ProtoNumber(1) val members: List<ChatRoomMemberProto> = emptyList(),
+    )
 
     override fun resolveDex(dexKit: DexKitBridge) {
         classMmKernel.find(dexKit) {
@@ -348,6 +420,33 @@ object WeDatabaseApi : ApiHookItem(), IResolvesDex {
         }
     }
 
+    /**
+     * 获取单个群聊
+     * @param wxId 群聊 wxId（xxx@chatroom）
+     * @return WeGroup 对象，若未找到则返回 null
+     */
+    fun getGroup(wxId: String): WeGroup? {
+        if (wxId.isEmpty() || !wxId.endsWith("@chatroom")) return null
+        try {
+            val escapedWxid = wxId.replace("'", "''")
+            val result = executeQuery(SqlStatements.group(escapedWxid))
+
+            if (result.isEmpty()) return null
+
+            val row = result[0]
+            return WeGroup(
+                wxId = row.str("username"),
+                nickname = row.str("nickname"),
+                nicknameShortPinyin = row.str("pyInitial"),
+                nicknamePinyin = row.str("quanPin"),
+                avatarUrl = row.str("avatarUrl")
+            )
+        } catch (e: Exception) {
+            WeLogger.e(TAG, "failed to get group; wxid=$wxId", e)
+            return null
+        }
+    }
+
     fun getDisplayName(convId: String): String {
         if (convId.isEmpty()) error("convId is empty")
         try {
@@ -418,6 +517,33 @@ object WeDatabaseApi : ApiHookItem(), IResolvesDex {
     }
 
     /**
+     * 获取群成员在群中的群昵称（群备注）
+     * 数据来自 chatroom.roomdata protobuf，没有设置群昵称时返回空字符串
+     * @param groupId 群聊 wxId（xxx@chatroom）
+     * @param memberId 成员 wxId
+     * @return 群昵称，未设置时返回空字符串
+     */
+    fun getGroupMemberDisplayName(groupId: String, memberId: String): String {
+        if (!groupId.endsWith("@chatroom") || memberId.isEmpty()) return ""
+        try {
+            val cursor = db.rawQuery(
+                "SELECT roomdata FROM chatroom WHERE chatroomname = ?",
+                arrayOf(groupId)
+            )
+            cursor.use { cursor ->
+                if (cursor != null && cursor.moveToFirst()) {
+                    val blob = cursor.getBlob(0) ?: return ""
+                    val data = ProtoBuf.decodeFromByteArray<ChatRoomDataProto>(blob)
+                    return data.members.firstOrNull { it.wxid == memberId }?.displayName ?: ""
+                }
+            }
+        } catch (e: Exception) {
+            WeLogger.e(TAG, "failed to get group member display name; groupId=$groupId, memberId=$memberId", e)
+        }
+        return ""
+    }
+
+    /**
      * 获取【公众号】
      */
     fun getOfficialAccounts(): List<WeOfficialAccount> {
@@ -445,6 +571,39 @@ object WeDatabaseApi : ApiHookItem(), IResolvesDex {
                 createTime = row.long("createTime"),
                 isSend = row.int("isSend")
             )
+        }
+    }
+
+    /**
+     * 获取指定会话中特定发送者的【消息】
+     * @param convId 会话 ID（单聊为对方 wxid，群聊为 xxx@chatroom）
+     * @param senderId 发送者 ID（wxid）
+     */
+    fun getMessagesFromSender(
+        convId: String,
+        senderId: String,
+    ): List<WeMessage> {
+        if (convId.isEmpty() || senderId.isEmpty()) return emptyList()
+
+        try {
+            // 防止 SQL 注入转义
+            val escapedConvId = convId.replace("'", "''")
+            val escapedSenderId = senderId.replace("'", "''")
+
+            val sql = SqlStatements.messagesFromSender(escapedConvId, escapedSenderId)
+            return executeQuery(sql).map { row ->
+                WeMessage(
+                    msgId = row.long("msgId"),
+                    talker = row.str("talker"),
+                    content = row.str("content"),
+                    typeCode = row.int("type"),
+                    createTime = row.long("createTime"),
+                    isSend = row.int("isSend")
+                )
+            }
+        } catch (e: Exception) {
+            WeLogger.e(TAG, "failed to get messages from sender; convId=$convId, senderId=$senderId", e)
+            return emptyList()
         }
     }
 

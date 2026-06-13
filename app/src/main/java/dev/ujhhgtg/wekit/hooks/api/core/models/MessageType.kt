@@ -2,78 +2,78 @@
 
 package dev.ujhhgtg.wekit.hooks.api.core.models
 
-enum class MessageType(val code: Int) {
-    MOMENTS(0),
+enum class MessageType(val code: Int, val displayName: String) {
+    MOMENTS(0, "朋友圈"),
 
     @Deprecated("Use MessageType.isText()")
-    TEXT(1),
-    IMAGE(3),
-    VOICE(34),
-    FRIEND_VERIFY(37),
-    CONTACT_RECOMMEND(40),
-    CARD(42),
-    VIDEO(43),
+    TEXT(1, "文本"),
+    IMAGE(3, "图片"),
+    VOICE(34, "语音"),
+    FRIEND_VERIFY(37, "好友验证"),
+    CONTACT_RECOMMEND(40, "名片推荐"),
+    CARD(42, "名片"),
+    VIDEO(43, "视频"),
 
     @Deprecated("Use MessageType.isSticker()")
-    STICKER(47),
+    STICKER(47, "表情"),
 
     @Deprecated("Use MessageType.isLocation()")
-    LOCATION(48),
-    APP(49),
+    LOCATION(48, "位置"),
+    APP(49, "应用消息"),
 
     @Deprecated("Use MessageType.isVoip()")
-    VOIP(50),
-    STATUS(51),
+    VOIP(50, "音视频通话"),
+    STATUS(51, "状态"),
 
     @Deprecated("Use MessageType.isVoip()")
-    VOIP_NOTIFY(52),
+    VOIP_NOTIFY(52, "通话通知"),
 
     @Deprecated("Use MessageType.isVoip()")
-    VOIP_INVITE(53),
-    MICRO_VIDEO(62),
-    SYSTEM_NOTICE(9999),
+    VOIP_INVITE(53, "通话邀请"),
+    MICRO_VIDEO(62, "小视频"),
+    SYSTEM_NOTICE(9999, "系统通知"),
 
-    SYSTEM(10000),
+    SYSTEM(10000, "系统消息"),
 
     @Deprecated("Use MessageType.isLocation()")
-    SYSTEM_LOCATION(10002),
+    SYSTEM_LOCATION(10002, "系统位置"),
 
     @Deprecated("Use MessageType.isSticker()")
-    SO_GOU_EMOJI(1048625),
+    SO_GOU_EMOJI(1048625, "搜狗表情"),
 
     @Deprecated("Use MessageType.isLink()")
-    LINK(16777265),
-    RECALL(268445456),
-    SERVICE(318767153),
-    TRANSFER(419430449),
+    LINK(16777265, "链接"),
+    RECALL(268445456, "撤回消息"),
+    SERVICE(318767153, "服务消息"),
+    TRANSFER(419430449, "转账"),
 
     @Deprecated("Use MessageType.isRedPacket()")
-    RED_PACKET(436207665),
+    RED_PACKET(436207665, "红包"),
 
     @Deprecated("Use MessageType.isRedPacket()")
-    SPECIAL_RED_PACKET(469762097),
-    ACCOUNT_VIDEO(486539313),
-    RED_PACKET_COVER(536936497),
+    SPECIAL_RED_PACKET(469762097, "裂变红包"),
+    ACCOUNT_VIDEO(486539313, "视频号视频"),
+    RED_PACKET_COVER(536936497, "红包封面"),
 
     @Deprecated("Use MessageType.isVideoAccount()")
-    VIDEO_ACCOUNT(754974769),
+    VIDEO_ACCOUNT(754974769, "视频号"),
 
     @Deprecated("Use MessageType.isVideoAccount()")
-    VIDEO_ACCOUNT_CARD(771751985),
-    GROUP_NOTE(805306417),
-    QUOTE(822083633),
-    PAT(922746929),
+    VIDEO_ACCOUNT_CARD(771751985, "视频号名片"),
+    GROUP_NOTE(805306417, "群笔记"),
+    QUOTE(822083633, "引用消息"),
+    PAT(922746929, "拍一拍"),
 
     @Deprecated("Use MessageType.isVideoAccount()")
-    VIDEO_ACCOUNT_LIVE(973078577),
+    VIDEO_ACCOUNT_LIVE(973078577, "视频号直播"),
 
     @Deprecated("Use MessageType.isLink()")
-    PRODUCT(974127153),
-    UNKNOWN(975175729),
+    PRODUCT(974127153, "商品链接"),
+    UNKNOWN(975175729, "未知类型"),
 
     @Deprecated("Use MessageType.isLink()")
-    MUSIC(1040187441),
-    FILE(1090519089),
+    MUSIC(1040187441, "音乐链接"),
+    FILE(1090519089, "文件"),
     ;
 
     inline val isText get() = code == TEXT.code || code == QUOTE.code

@@ -26,6 +26,7 @@ import androidx.core.net.toUri
 import com.highcapable.kavaref.extension.toClass
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedHelpers
+import dev.ujhhgtg.comptime.This
 import dev.ujhhgtg.wekit.activity.TransparentActivity
 import dev.ujhhgtg.wekit.hooks.core.ClickableHookItem
 import dev.ujhhgtg.wekit.hooks.core.HookItem
@@ -48,7 +49,7 @@ import kotlin.io.path.div
 )
 object VirtualVoipVideo : ClickableHookItem() {
 
-    private const val TAG = "VirtualVideoHook"
+    private val TAG = This.Class.simpleName
     private const val KEY_VIDEO_PATH = "key_virtual_video_path"
 
     private val DEFAULT_VIDEO_PATH by lazy {

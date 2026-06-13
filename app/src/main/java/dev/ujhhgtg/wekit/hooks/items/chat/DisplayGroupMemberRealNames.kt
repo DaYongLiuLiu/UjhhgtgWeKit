@@ -10,23 +10,25 @@ import android.view.View
 import android.widget.TextView
 import androidx.core.view.isGone
 import de.robv.android.xposed.XC_MethodHook
+import de.robv.android.xposed.XposedHelpers
 import dev.ujhhgtg.comptime.This
-import dev.ujhhgtg.wekit.hooks.api.net.WePacketHelper
+import dev.ujhhgtg.wekit.dexkit.abc.IResolvesDex
+import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
+import dev.ujhhgtg.wekit.hooks.api.net.WeNetSceneApi
 import dev.ujhhgtg.wekit.hooks.api.ui.WeChatMessageViewApi
 import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
-import dev.ujhhgtg.wekit.hooks.items.chat.DisplayGroupMemberRealNames.cacheFile
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.fs.KnownPaths
+import dev.ujhhgtg.wekit.utils.reflection.BString
 import dev.ujhhgtg.wekit.utils.reflection.asResolver
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import dev.ujhhgtg.wekit.utils.reflection.fields
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.contentOrNull
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
+import java.lang.ref.WeakReference
+import java.util.Collections
+import java.util.WeakHashMap
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.readText
@@ -37,14 +39,13 @@ import kotlin.io.path.writeText
     categories = ["聊天"],
     description = "在群聊中通过转账接口获取并显示群成员的真实微信昵称"
 )
-object DisplayGroupMemberRealNames : SwitchHookItem(), WeChatMessageViewApi.ICreateViewListener {
+object DisplayGroupMemberRealNames : SwitchHookItem(), IResolvesDex, WeChatMessageViewApi.ICreateViewListener {
 
     private val TAG = This.Class.simpleName
 
     /**
      * Integer tag key stamped onto the username [TextView] so in-flight async fetches can
      * detect that the view has been recycled to a different message before posting their update.
-     * Placed in the 0x7E… range to avoid collisions with Android-generated R.id values (0x7F…).
      */
     private const val VIEW_TAG_SENDER = 0x7E000001
 
@@ -52,23 +53,74 @@ object DisplayGroupMemberRealNames : SwitchHookItem(), WeChatMessageViewApi.ICre
     private val mainHandler by lazy { Handler(Looper.getMainLooper()) }
 
     /**
-     * wxId → real nickname. Only confirmed real names are stored here; contacts that have
-     * deleted/blocked us produce no entry. Persisted to [cacheFile] across sessions.
+     * wxId → real nickname. Persisted across sessions.
      */
     private val realNames = ConcurrentHashMap<String, String>()
 
     /**
      * Tracks wxIds for which a fetch has already been dispatched this session.
-     * Prevents duplicate in-flight requests. On network failure the id is removed so the
-     * next view-bind can retry; on "no real name" it stays in to suppress further requests.
      */
     private val pendingOrQueried = ConcurrentHashMap.newKeySet<String>()
+
+    /**
+     * Correlates NetScene instances to their respective wxIds.
+     * Uses weak keys to automatically clean up when the NetScene instance gets garbage collected.
+     */
+    private val sceneToWxId = Collections.synchronizedMap(WeakHashMap<Any, String>())
+
+    /**
+     * Tracks live UI targets that need updating as soon as the corresponding async net fetch lands.
+     */
+    private val pendingViews = ConcurrentHashMap<String, CopyOnWriteArrayList<WeakReference<TextView>>>()
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
 
     override fun onEnable() {
         loadCache()
         WeChatMessageViewApi.addListener(this)
+
+        // Hook the response processing / callback method inside NetSceneBeforeTransfer
+        methodNetSceneBeforeTransferOnSceneEnd.hookAfter {
+            val wxId = sceneToWxId.remove(thisObject) ?: return@hookAfter
+
+            val errType = args.getOrNull(0) as? Int ?: 0
+            val errCode = args.getOrNull(1) as? Int ?: 0
+
+            // If network/server failure occurs, allow future binding attempts to retry
+            if (errType != 0 || errCode != 0) {
+                WeLogger.w(TAG, "fetch failed for $wxId: errType=$errType errCode=$errCode")
+                pendingOrQueried.remove(wxId)
+                pendingViews.remove(wxId)
+                return@hookAfter
+            }
+
+            val realName = thisObject.asResolver()
+                .firstField().get()!!.asResolver().fields {
+                    type = BString
+                }[1].get()!! as String
+
+            if (realName.isNotEmpty()) {
+                realNames[wxId] = realName
+                saveCache()
+
+                // Immediate UI update for any matching view targets currently alive on screen
+                val views = pendingViews.remove(wxId)
+                views?.forEach { ref ->
+                    val textView = ref.get()
+                    if (textView != null) {
+                        mainHandler.post {
+                            if (textView.getTag(VIEW_TAG_SENDER) == wxId) {
+                                applyRealName(textView, realName)
+                            }
+                        }
+                    }
+                }
+            } else {
+                // realName == null → deleted/blocked. Clear references but keep it
+                // inside pendingOrQueried to suppress duplicate requests this session.
+                pendingViews.remove(wxId)
+            }
+        }
     }
 
     override fun onDisable() {
@@ -99,7 +151,9 @@ object DisplayGroupMemberRealNames : SwitchHookItem(), WeChatMessageViewApi.ICre
         val msgInfo = WeChatMessageViewApi.getMsgInfoFromParam(param)
         if (!msgInfo.isInGroupChat) return
         if (msgInfo.isSend != 0) return
+
         val sender = runCatching { msgInfo.sender }.getOrNull() ?: return
+        val talker = runCatching { msgInfo.talker }.getOrNull() ?: return
 
         val textView = view.tag.asResolver()
             .firstField { name = "userTV"; superclass() }
@@ -107,7 +161,7 @@ object DisplayGroupMemberRealNames : SwitchHookItem(), WeChatMessageViewApi.ICre
 
         if (textView.isGone) return
 
-        // Stamp sender so the async callback can verify the view hasn't been recycled
+        // Stamp sender so the async callback can verify recycling state
         textView.setTag(VIEW_TAG_SENDER, sender)
 
         val cached = realNames[sender]
@@ -116,50 +170,41 @@ object DisplayGroupMemberRealNames : SwitchHookItem(), WeChatMessageViewApi.ICre
             return
         }
 
-        // add() returns true only when the element was absent → fetch dispatched exactly once
         if (pendingOrQueried.add(sender)) {
-            fetchRealName(sender, textView)
+            pendingViews.computeIfAbsent(sender) { CopyOnWriteArrayList() }.add(WeakReference(textView))
+            fetchRealName(sender, talker)
         }
     }
 
     // ── Network fetch ─────────────────────────────────────────────────────────
 
-    /**
-     * Reuses the same `/cgi-bin/mmpay-bin/beforetransfer` CGI as [dev.ujhhgtg.wekit.hooks.items.contacts.DetectDeletedFriends].
-     * Field `"4"` in the response carries the real nickname; its absence means the contact
-     * deleted/blocked us or the account is abnormal — no disk entry is written in that case.
-     */
-    private fun fetchRealName(wxId: String, textView: TextView) {
-        CoroutineScope(Dispatchers.IO).launch {
-            WePacketHelper.sendCgi(
-                "/cgi-bin/mmpay-bin/beforetransfer", 2783, 0, 0,
-                """{"2":"$wxId"}"""
-            ) {
-                onSuccess { json, _ ->
-                    val realName = runCatching {
-                        Json.parseToJsonElement(json).jsonObject["4"]?.jsonPrimitive?.contentOrNull
-                    }.getOrNull()
-
-                    if (realName != null) {
-                        realNames[wxId] = realName
-                        saveCache()
-                        mainHandler.post {
-                            // Only apply if the view still belongs to this sender
-                            if (textView.getTag(VIEW_TAG_SENDER) == wxId) {
-                                applyRealName(textView, realName)
-                            }
-                        }
-                    }
-                    // realName == null → deleted/blocked. wxId remains in pendingOrQueried
-                    // to suppress retries for the rest of this session.
-                }
-
-                onFailure { errType, errCode, errMsg ->
-                    WeLogger.w(TAG, "Fetch failed for $wxId: errType=$errType errCode=$errCode errMsg=$errMsg")
-                    // Evict so the next view-bind for this sender can retry
-                    pendingOrQueried.remove(wxId)
-                }
+    private val methodNetSceneBeforeTransferOnSceneEnd by dexMethod {
+        searchPackages("com.tencent.mm.plugin.remittance.model")
+        matcher {
+            declaredClass {
+                usingEqStrings("/cgi-bin/mmpay-bin/beforetransfer")
             }
+
+            usingEqStrings("MicroMsg.NetSceneBeforeTransfer", "ret_code: %s, ret_msg: %s")
+        }
+    }
+
+    private fun fetchRealName(wxId: String, talker: String) {
+        runCatching {
+            val netSceneClass = methodNetSceneBeforeTransferOnSceneEnd.method.declaringClass
+
+            // Instantiates the NetScene class passing both the sender and the talker (room id)
+            val netScene = XposedHelpers.newInstance(netSceneClass, wxId, talker)
+
+            // Track the created scene context before execution
+            sceneToWxId[netScene] = wxId
+
+            // Dispatch to WeChat's native worker queue
+            WeNetSceneApi.addNetSceneToQueue(netScene)
+        }.onFailure { e ->
+            WeLogger.e(TAG, "failed to dispatch NetScene tasks for $wxId", e)
+            pendingOrQueried.remove(wxId)
+            pendingViews.remove(wxId)
         }
     }
 
@@ -167,14 +212,11 @@ object DisplayGroupMemberRealNames : SwitchHookItem(), WeChatMessageViewApi.ICre
 
     private fun applyRealName(textView: TextView, realName: String) {
         val existing = textView.text ?: return
-        val base = existing.toString() // plain text only, for length/endsWith checks
+        val base = existing.toString()
         val annotation = " ($realName)"
 
-        // Guard against double-application if onCreateView fires twice for the same binding
         if (base.endsWith(annotation)) return
 
-        // Construct from the live CharSequence so that any spans already applied by other hooks
-        // (e.g. the RoundedBackgroundSpan role badge from DisplayGroupMemberRoles) are preserved.
         val sb = SpannableStringBuilder(existing)
         sb.append(annotation)
 

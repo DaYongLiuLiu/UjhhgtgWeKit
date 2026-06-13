@@ -103,7 +103,7 @@ import kotlin.math.min
 )
 object CustomContactAvatar : ClickableHookItem(), IContactInfoProvider, IResolvesDex {
 
-    private const val CONTACT_PREF_KEY = "custom_contact_avatar"
+    private const val PREF_KEY = "custom_contact_avatar"
     private const val SEP = ";"
     private const val VIEW_TAG_CUSTOM_AVATAR = 0x57434156
 
@@ -258,19 +258,15 @@ object CustomContactAvatar : ClickableHookItem(), IContactInfoProvider, IResolve
         val wxId = activity.currentWxId ?: return emptyList()
         val hasCustomAvatar = avatarMap.containsKey(wxId)
         return listOf(ContactInfoItem(
-            key = "$CONTACT_PREF_KEY$SEP${wxId}",
+            key = "$PREF_KEY$SEP$wxId",
             title = if (hasCustomAvatar) "更换自定义头像" else "设置自定义头像",
-            position = 2
+            position = 1
         ))
     }
 
     override fun onItemClick(activity: Activity, key: String): Boolean {
-        if (!key.startsWith(CONTACT_PREF_KEY)) return false
+        if (!key.startsWith(PREF_KEY)) return false
         val wxId = key.substringAfter(SEP).ifBlank { activity.currentWxId.orEmpty() }
-        if (wxId.isBlank()) {
-            showToast(activity, "未获取到联系人 ID")
-            return true
-        }
 
         if (avatarMap.containsKey(wxId)) {
             showContactAvatarDialog(activity, wxId)

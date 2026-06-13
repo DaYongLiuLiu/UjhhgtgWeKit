@@ -53,4 +53,6 @@ data class WeMessage(
     val typeCode: Int,
     val createTime: Long,
     val isSend: Int
-)
+) {
+    val type = MessageType.fromCode(typeCode)
+}

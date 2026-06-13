@@ -17,6 +17,7 @@ import dev.ujhhgtg.wekit.hooks.core.HookItem
 import dev.ujhhgtg.wekit.preferences.WePrefs
 import dev.ujhhgtg.wekit.utils.TargetProcesses
 import dev.ujhhgtg.wekit.utils.reflection.asResolver
+import dev.ujhhgtg.wekit.utils.reflection.makeAccessible
 import dev.ujhhgtg.wekit.utils.reflection.resolve
 import java.lang.reflect.Field
 import java.time.LocalDate
@@ -74,8 +75,8 @@ object AprilFools : BaseHookItem() {
                 val view = thisObject as View
 
                 if (!::noMeasuredTvTextProp.isInitialized) {
-                    noMeasuredTvTextProp = view.asResolver().firstField { name = "mText" }.self.apply { isAccessible = true }
-                    noMeasuredTvPaintProp = view.asResolver().firstField { type = TextPaint::class }.self.apply { isAccessible = true }
+                    noMeasuredTvTextProp = view.asResolver().firstField { name = "mText" }.self.makeAccessible()
+                    noMeasuredTvPaintProp = view.asResolver().firstField { type = TextPaint::class }.self.makeAccessible()
                 }
 
                 applyRainbowEffect(
