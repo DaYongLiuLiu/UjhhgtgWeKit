@@ -8,7 +8,7 @@
 
 尝试禁用「Xposed API 调用保护」和「隐藏应用列表」。
 
-## 3. 模块数据在哪
+## 3. 模块数据在哪?
 
 `/sdcard/Android/data/<宿主包名>/WeKit`
 
@@ -20,7 +20,7 @@
 
 合并进了 [「聊天/聊天输入栏增强」](features/chat/chat-input-bar-enhancements.md)。
 
-## 6. LSPosed 提示「此模块是为较新的 Xposed 版本设计的, 因此某些功能可能无法使用」怎么办?
+## 6. LSPosed 提示「此模块是为较新的 Xposed 版本设计的, 因此某些功能可能无法使用」
 
 忽略即可; 模块支持全部 Xposed API 版本。
 

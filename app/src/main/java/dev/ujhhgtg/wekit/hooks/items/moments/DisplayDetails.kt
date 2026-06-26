@@ -42,7 +42,6 @@ import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.android.showToast
 import dev.ujhhgtg.wekit.utils.formatEpoch
-import org.luckypray.dexkit.DexKitBridge
 import java.util.Locale
 
 @HookItem(
@@ -65,8 +64,6 @@ object DisplayDetails : ClickableHookItem(), IResolveDex {
     private const val PH_TYPE = $$"${type}"
     private const val PH_SNS_ID = $$"${snsId}"
     private const val PH_USER_NAME = $$"${userName}"
-
-    private const val TAG_LIST_ATTACHED = 0x55070003
 
     private val TIMESTAMP_REGEX = Regex(
         """^\d+分钟前$|^\d+小时前$|^\d+天前$|^刚刚$|^昨天$|^\d+\s*mins?\s*ago$|^\d+\s*hrs?\s*ago$|^\d+\s*days?\s*ago$|^yesterday$""",
@@ -183,7 +180,7 @@ object DisplayDetails : ClickableHookItem(), IResolveDex {
         val timeTextView = itemGroup.findViewWhich<TextView> { view ->
             if (view !is TextView || !view.isVisible) return@findViewWhich false
             val text = view.text?.toString().orEmpty()
-            TIMESTAMP_REGEX.matches(text.trim()) || (timeText.isNotEmpty() && text.contains(timeText))
+            TIMESTAMP_REGEX.matches(text.trim()) || timeText.isNotEmpty() && text.contains(timeText)
         } ?: return
 
         // The getTimeString hook keeps the time view on the detail text; only fill the bare relative-time gap here.
@@ -230,9 +227,11 @@ object DisplayDetails : ClickableHookItem(), IResolveDex {
             .replace(PH_USER_NAME, userName)
     }
 
-    // ── DexKit delegates ─────────────────────────────────────────────────
-
-    private val classImproveSnsInfo by dexClass()
+    private val classImproveSnsInfo by dexClass {
+        matcher {
+            usingEqStrings("ImproveInfo(name=")
+        }
+    }
 
     private val classImproveInteractionLayout by dexClass {
         matcher {
@@ -247,53 +246,38 @@ object DisplayDetails : ClickableHookItem(), IResolveDex {
         }
     }
 
-    private val fieldSnsId by dexField()
+    private val fieldSnsId by dexField {
+        matcher {
+            declaredClass(classImproveSnsInfo.clazz.superclass!!)
+            name = "field_snsId"
+        }
+    }
 
-    private val fieldUserName by dexField()
+    private val fieldUserName by dexField {
+        matcher {
+            declaredClass(classImproveSnsInfo.clazz.superclass!!)
+            name = "field_userName"
+        }
+    }
 
-    private val fieldCreateTime by dexField()
+    private val fieldCreateTime by dexField {
+        matcher {
+            declaredClass(classImproveSnsInfo.clazz.superclass!!)
+            name = "field_createTime"
+        }
+    }
 
-    private val fieldType by dexField()
+    private val fieldType by dexField {
+        matcher {
+            declaredClass(classImproveSnsInfo.clazz.superclass!!)
+            name = "field_type"
+        }
+    }
 
     private val methodGetTimeString by dexMethod(allowFailure = true) {
         matcher {
             declaredClass(classImproveSnsInfo.clazz)
             usingEqStrings("getTimeString")
-        }
-    }
-
-    override fun resolveDex(dexKit: DexKitBridge) {
-        classImproveSnsInfo.find(dexKit) {
-            matcher {
-                usingEqStrings("ImproveInfo(name=")
-            }
-        }
-
-        val fieldOwner = classImproveSnsInfo.clazz.superclass
-            ?: error("superclass of ImproveSnsInfo not found")
-        fieldSnsId.find(dexKit) {
-            matcher {
-                declaredClass(fieldOwner)
-                name = "field_snsId"
-            }
-        }
-        fieldUserName.find(dexKit) {
-            matcher {
-                declaredClass(fieldOwner)
-                name = "field_userName"
-            }
-        }
-        fieldCreateTime.find(dexKit) {
-            matcher {
-                declaredClass(fieldOwner)
-                name = "field_createTime"
-            }
-        }
-        fieldType.find(dexKit) {
-            matcher {
-                declaredClass(fieldOwner)
-                name = "field_type"
-            }
         }
     }
 
