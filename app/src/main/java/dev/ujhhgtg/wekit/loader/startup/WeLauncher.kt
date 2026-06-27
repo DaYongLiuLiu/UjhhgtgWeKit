@@ -7,7 +7,7 @@ import dev.ujhhgtg.comptime.This
 import dev.ujhhgtg.wekit.constants.PackageNames
 import dev.ujhhgtg.wekit.constants.Preferences
 import dev.ujhhgtg.wekit.dexkit.cache.DexCacheManager
-import dev.ujhhgtg.wekit.hooks.core.HookItemsLoader
+import dev.ujhhgtg.wekit.features.core.FeaturesLoader
 import dev.ujhhgtg.wekit.loader.utils.ActivityProxy
 import dev.ujhhgtg.wekit.loader.utils.ParcelableFixer
 import dev.ujhhgtg.wekit.utils.HostInfo
@@ -45,7 +45,7 @@ object WeLauncher {
         }
 
         runCatching {
-            HookItemsLoader.loadHookItems()
+            FeaturesLoader.loadFeatures()
         }.onFailure { WeLogger.e(TAG, "failed to load hooks", it) }
     }
 

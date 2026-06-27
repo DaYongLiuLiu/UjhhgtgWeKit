@@ -9,7 +9,7 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalConfiguration
-import dev.ujhhgtg.wekit.hooks.items.beautify.MonetEngine
+import dev.ujhhgtg.wekit.features.items.beautify.MonetEngine
 import dev.ujhhgtg.wekit.ui.utils.theme.darkScheme
 import dev.ujhhgtg.wekit.ui.utils.theme.lightScheme
 import dev.ujhhgtg.wekit.utils.HostInfo

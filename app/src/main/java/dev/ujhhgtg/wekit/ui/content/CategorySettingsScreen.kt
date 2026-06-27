@@ -1,17 +1,17 @@
 package dev.ujhhgtg.wekit.ui.content
 
 import dev.ujhhgtg.comptime.nameOf
-import dev.ujhhgtg.wekit.hooks.core.BaseHookItem
-import dev.ujhhgtg.wekit.hooks.core.ClickableHookItem
-import dev.ujhhgtg.wekit.hooks.core.HookItemsProvider
-import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
+import dev.ujhhgtg.wekit.features.core.BaseFeature
+import dev.ujhhgtg.wekit.features.core.ClickableFeature
+import dev.ujhhgtg.wekit.features.core.FeaturesProvider
+import dev.ujhhgtg.wekit.features.core.SwitchFeature
 import dev.ujhhgtg.wekit.preferences.WePrefs
 import dev.ujhhgtg.wekit.utils.WeLogger
 
 class CategorySettingsScreen(private val categoryName: String) : BasePrefsScreen(categoryName) {
 
     override fun initPreferences() {
-        val targetItems = HookItemsProvider.ALL_HOOK_ITEMS.filter { item ->
+        val targetItems = FeaturesProvider.ALL_HOOK_ITEMS.filter { item ->
             categoryName in item.categories
         }
 
@@ -22,14 +22,14 @@ class CategorySettingsScreen(private val categoryName: String) : BasePrefsScreen
             val desc = item.description
 
             when (item) {
-                is ClickableHookItem -> addClickableItem(item, name, desc)
-                is SwitchHookItem -> addSwitchItem(item, name, desc)
+                is ClickableFeature -> addClickableItem(item, name, desc)
+                is SwitchFeature -> addSwitchItem(item, name, desc)
             }
         }
     }
 
     private fun addSwitchItem(
-        item: SwitchHookItem,
+        item: SwitchFeature,
         title: String,
         summary: String,
     ) {
@@ -58,7 +58,7 @@ class CategorySettingsScreen(private val categoryName: String) : BasePrefsScreen
     }
 
     private fun addClickableItem(
-        item: ClickableHookItem,
+        item: ClickableFeature,
         title: String,
         summary: String,
     ) {
@@ -87,7 +87,7 @@ class CategorySettingsScreen(private val categoryName: String) : BasePrefsScreen
             onClick = {
                 runCatching {
                     item.onClick(it)
-                }.onFailure { WeLogger.e(nameOf(BaseHookItem::class), "failed to execute onClick of ${item.displayName}") }
+                }.onFailure { WeLogger.e(nameOf(BaseFeature::class), "failed to execute onClick of ${item.displayName}") }
             },
         )
     }

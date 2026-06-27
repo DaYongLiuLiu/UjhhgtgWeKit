@@ -3,7 +3,7 @@ package dev.ujhhgtg.wekit.dexkit.cache
 import dev.ujhhgtg.comptime.This
 import dev.ujhhgtg.wekit.constants.Preferences
 import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
-import dev.ujhhgtg.wekit.hooks.core.BaseHookItem
+import dev.ujhhgtg.wekit.features.core.BaseFeature
 import dev.ujhhgtg.wekit.preferences.WePrefs
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.fs.KnownPaths
@@ -49,7 +49,7 @@ object DexCacheManager {
     }
 
     /**
-     * 检查 HookItem 的缓存是否完整有效。
+     * 检查 Feature 的缓存是否完整有效。
      *
      * 有效条件：
      * 1. 缓存文件存在
@@ -57,7 +57,7 @@ object DexCacheManager {
      * 3. [item] 的每个委托 key 都有非空值
      */
     fun isItemCacheValid(item: IResolveDex): Boolean {
-        if (item !is BaseHookItem) unreachable()
+        if (item !is BaseFeature) unreachable()
 
         val cacheFile = getCacheFile(item.name)
         if (!cacheFile.exists()) {
@@ -98,8 +98,8 @@ object DexCacheManager {
      * 数据来自 [IResolveDex.collectDescriptors]。
      */
     fun saveItemCache(item: IResolveDex) {
-        if (item !is BaseHookItem) {
-            error("item is not BaseHookItem")
+        if (item !is BaseFeature) {
+            error("item is not BaseFeature")
         }
 
         val cacheFile = getCacheFile(item.name)
@@ -124,8 +124,8 @@ object DexCacheManager {
      * 由 [IResolveDex.loadFromCache] 消费，后者负责逐委托分发。
      */
     fun loadItemCache(item: IResolveDex): Map<String, Any>? {
-        if (item !is BaseHookItem) {
-            error("item is not BaseHookItem")
+        if (item !is BaseFeature) {
+            error("item is not BaseFeature")
         }
 
         val cacheFile = getCacheFile(item.name)

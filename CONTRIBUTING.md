@@ -152,16 +152,16 @@ graph BT
 
 提供 Hook 功能的基础设施：
 
-- **注解驱动**: 使用 `@HookItem` 标记功能
+- **注解驱动**: 使用 `@Feature` 标记功能
 - **自动扫描**: KSP 编译时扫描并生成代码
 - **基类体系**: 提供多种基类适配不同场景
 
 **基类**:
 
-- `BaseHookItem`: 所有 Hook 的抽象基类
-- `SwitchHookItem`: 带开关的功能
-- `ClickableHookItem`: 可点击触发的功能
-- `ApiHookItem`: API 级别的 Hook
+- `BaseFeature`: 所有 Hook 的抽象基类
+- `SwitchFeature`: 带开关的功能
+- `ClickableFeature`: 可点击触发的功能
+- `ApiFeature`: API 级别的 Hook
 
 #### 3. DEX 分析系统 (`dexkit/`)
 
@@ -320,16 +320,16 @@ dev.ujhhgtg.wekit/
 #### 包命名
 
 - **核心框架**: `dev.ujhhgtg.wekit.core.*`
-- **Hook 功能**: `dev.ujhhgtg.wekit.hooks.item.*`
+- **Hook 功能**: `dev.ujhhgtg.wekit.features.item.*`
 - **配置对话框**: 使用 Jetpack Compose, 直接写在对应功能的 onClick 函数内部
 - **加载器**: `dev.ujhhgtg.wekit.loader.*`
 - **工具类**: `dev.ujhhgtg.wekit.util.*`
 
 #### 类命名
 
-- **基类**: `Base*` (如 `BaseHookItem`)
+- **基类**: `Base*` (如 `BaseFeature`)
 - **接口**: `I*` (如 `IResolveDex`, `IHookBridge`)
-- **工厂**: `*Factory` (如 `HookItemFactory`)
+- **工厂**: `*Factory` (如 `FeatureFactory`)
 - **管理器**: `*Manager` (如 `ConfigManager`)
 - **工具类**: `*Utils` (如 `LogUtils`)
 - **实现类**: `*Impl` (如 `MmkvConfigManagerImpl`)
@@ -507,20 +507,20 @@ override fun onEnable() {
 #### 示例 4: 完整的版本兼容实现
 
 ```kotlin
-package dev.ujhhgtg.wekit.hooks.item.chat.msg
+package dev.ujhhgtg.wekit.features.item.chat.msg
 
 import dev.ujhhgtg.wekit.constants.MMVersion
-import dev.ujhhgtg.wekit.core.model.SwitchHookItem
+import dev.ujhhgtg.wekit.core.model.SwitchFeature
 import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
-import dev.ujhhgtg.wekit.hooks.core.annotation.HookItem
+import dev.ujhhgtg.wekit.features.core.annotation.Feature
 import dev.ujhhgtg.wekit.host.HostInfo
 import org.luckypray.dexkit.DexKitBridge
 
-@HookItem(
+@Feature(
     path = "聊天/版本兼容示例",
     description = "展示如何进行版本适配"
 )
-class VersionCompatExample : SwitchHookItem(), IResolveDex {
+class VersionCompatExample : SwitchFeature(), IResolveDex {
 
     private val methodTarget by dexMethod()
 
@@ -693,11 +693,11 @@ override fun onEnable() {
  * @author Your Name
  * @since 1.0.0
  */
-@HookItem(
+@Feature(
     path = "聊天/防撤回",
     description = "阻止消息撤回"
 )
-class AntiRevokeMsg : SwitchHookItem() {
+class AntiRevokeMsg : SwitchFeature() {
     // ...
 }
 ```
@@ -770,12 +770,12 @@ override fun onEnable() {
 #### 示例 1: 带开关的简单功能
 
 ```kotlin
-package dev.ujhhgtg.wekit.hooks.item.chat.msg
+package dev.ujhhgtg.wekit.features.item.chat.msg
 
 import de.robv.android.xposed.XC_MethodHook
-import dev.ujhhgtg.wekit.core.model.SwitchHookItem
+import dev.ujhhgtg.wekit.core.model.SwitchFeature
 import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
-import dev.ujhhgtg.wekit.hooks.core.annotation.HookItem
+import dev.ujhhgtg.wekit.features.core.annotation.Feature
 import org.luckypray.dexkit.DexKitBridge
 
 /**
@@ -784,11 +784,11 @@ import org.luckypray.dexkit.DexKitBridge
  * @author Your Name
  * @since 1.0.0
  */
-@HookItem(
+@Feature(
     path = "聊天/阻止消息撤回",  // 功能在设置中的路径
     description = "防止对方撤回消息"    // 功能描述
 )
-class AntiRevokeMsg : SwitchHookItem(), IResolveDex {
+class AntiRevokeMsg : SwitchFeature(), IResolveDex {
 
     // 1. 声明需要 Hook 的方法（使用委托）
     private val methodRevokeMsg by dexMethod()
@@ -823,16 +823,16 @@ class AntiRevokeMsg : SwitchHookItem(), IResolveDex {
 
 #### 示例 2: 带确认对话框的开关功能
 
-`SwitchHookItem` 支持通过重写 `onBeforeToggle(boolean newState)` 方法来在开关切换前进行确认。如果返回 `false`,开关状态会被撤回。
+`SwitchFeature` 支持通过重写 `onBeforeToggle(boolean newState)` 方法来在开关切换前进行确认。如果返回 `false`,开关状态会被撤回。
 
 ```kotlin
-package dev.ujhhgtg.wekit.hooks.item.chat.risk
+package dev.ujhhgtg.wekit.features.item.chat.risk
 
 import android.content.Context
 import com.afollestad.materialdialogs.MaterialDialog
-import dev.ujhhgtg.wekit.core.model.SwitchHookItem
+import dev.ujhhgtg.wekit.core.model.SwitchFeature
 import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
-import dev.ujhhgtg.wekit.hooks.core.annotation.HookItem
+import dev.ujhhgtg.wekit.features.core.annotation.Feature
 import org.luckypray.dexkit.DexKitBridge
 
 /**
@@ -841,11 +841,11 @@ import org.luckypray.dexkit.DexKitBridge
  * @author Your Name
  * @since 1.0.0
  */
-@HookItem(
+@Feature(
     path = "聊天与消息/危险功能",
     description = "启用前需要确认"
 )
-class DangerousFeature : SwitchHookItem(), IResolveDex {
+class DangerousFeature : SwitchFeature(), IResolveDex {
 
     private val methodTarget by dexMethod()
 
@@ -1014,7 +1014,7 @@ override fun onBeforeToggle(newState: Boolean, context: Context): Boolean {
 - **applyToggle() 方法**:自动完成保存配置 + 更新状态 + 更新UI,无需手动操作
 - 默认实现返回 `true`,即允许所有切换操作
 - 此方法在点击开关按钮或点击整个条目时都会被调用
-- `SwitchHookItem` 和 `ClickableHookItem` 都支持此方法
+- `SwitchFeature` 和 `ClickableFeature` 都支持此方法
 
 #### 示例 2: 带配置界面的复杂功能
 
@@ -1027,21 +1027,21 @@ override fun onBeforeToggle(newState: Boolean, context: Context): Boolean {
 
 | 基类 | 核心特点 | 使用场景                            |
 |------|---------|---------------------------------|
-| `SwitchHookItem` | 带开关的功能<br/>**自动管理加载/卸载生命周期**<br/>支持 `beforeIfEnabled`/`afterIfEnabled`<br/> | 需要用户手动启用/禁用的功能<br/>如：防撤回等       |
-| `ClickableHookItem` | 可点击的功能<br/>**自动管理加载/卸载生命周期**<br/>支持 `beforeIfEnabled`/`afterIfEnabled`<br/>**必须重写 `onClick(Context)` 方法**<br/>默认显示开关，可通过 `noSwitchWidget()` 隐藏 | 需要配置界面的功能（点击打开配置）<br/>或纯工具类功能（点击执行操作） |
-| `ApiHookItem` | 底层 API 服务<br/>总是运行，不受用户控制<br/>无 `enabled` 状态 | 为其他功能提供基础服务<br/>如：数据库监听、网络 API 封装 |
-| `BaseHookItem` | 所有 Hook 的抽象基类<br/>其他基类都继承自它 | 请勿直接使用                          |
+| `SwitchFeature` | 带开关的功能<br/>**自动管理加载/卸载生命周期**<br/>支持 `beforeIfEnabled`/`afterIfEnabled`<br/> | 需要用户手动启用/禁用的功能<br/>如：防撤回等       |
+| `ClickableFeature` | 可点击的功能<br/>**自动管理加载/卸载生命周期**<br/>支持 `beforeIfEnabled`/`afterIfEnabled`<br/>**必须重写 `onClick(Context)` 方法**<br/>默认显示开关，可通过 `noSwitchWidget()` 隐藏 | 需要配置界面的功能（点击打开配置）<br/>或纯工具类功能（点击执行操作） |
+| `ApiFeature` | 底层 API 服务<br/>总是运行，不受用户控制<br/>无 `enabled` 状态 | 为其他功能提供基础服务<br/>如：数据库监听、网络 API 封装 |
+| `BaseFeature` | 所有 Hook 的抽象基类<br/>其他基类都继承自它 | 请勿直接使用                          |
 
 **快速选择指南**:
 
-- 需要开关控制？→ `SwitchHookItem`
-- 需要配置界面？→ `ClickableHookItem` + 重写 `onClick`
-- 纯工具功能（如清除缓存）？→ `ClickableHookItem` + `noSwitchWidget() = true`
-- 底层服务（总是运行）？→ `ApiHookItem`
+- 需要开关控制？→ `SwitchFeature`
+- 需要配置界面？→ `ClickableFeature` + 重写 `onClick`
+- 纯工具功能（如清除缓存）？→ `ClickableFeature` + `noSwitchWidget() = true`
+- 底层服务（总是运行）？→ `ApiFeature`
 
 **两个主要基类的核心区别**:
 
-| 对比项 | `SwitchHookItem` | `ClickableHookItem` |
+| 对比项 | `SwitchFeature` | `ClickableFeature` |
 |-------|----------------------------|-------------------------------|
 | **生命周期管理** | ✅ 自动管理 | ✅ 自动管理 |
 | **开关状态** | ✅ 有 `enabled` | ✅ 有 `enabled` |
@@ -1064,7 +1064,7 @@ override fun onBeforeToggle(newState: Boolean, context: Context): Boolean {
 - **娱乐功能**: `path = "娱乐功能/功能名"`
 - **脚本管理**: `path = "脚本管理/功能名"`
 
-> **注意**: `@HookItem` 注解的 `path` 参数决定功能在设置界面中的分类和位置，与文件夹结构无关。
+> **注意**: `@Feature` 注解的 `path` 参数决定功能在设置界面中的分类和位置，与文件夹结构无关。
 
 ### 进程选择指南
 
@@ -1113,11 +1113,11 @@ public class TargetProcesses {
 重写 `startup()` 方法来指定目标进程：
 
 ```kotlin
-@HookItem(
+@Feature(
     path = "开发者选项/工具进程功能",
     description = "仅在工具进程中运行的功能"
 )
-object ToolsProcessFeature : SwitchHookItem() {
+object ToolsProcessFeature : SwitchFeature() {
 
     override fun startup() {
         if (!TargetProcesses.isInMain && TargetProcesses.currentType != TargetProcesses.PROC_TOOLS) return
@@ -1220,7 +1220,7 @@ object ToolsProcessFeature : SwitchHookItem() {
 #### 完整示例
 
 ```kotlin
-package dev.ujhhgtg.wekit.hooks.items.dev
+package dev.ujhhgtg.wekit.features.items.dev
 
 /**
  * 多进程功能示例
@@ -1230,11 +1230,11 @@ package dev.ujhhgtg.wekit.hooks.items.dev
  * @author Your Name
  * @since 1.0.0
  */
-@HookItem(
+@Feature(
     path = "开发者选项/多进程功能",
     description = "演示如何在多个进程中运行 Hook"
 )
-class MultiProcessFeature : SwitchHookItem(), IResolveDex {
+class MultiProcessFeature : SwitchFeature(), IResolveDex {
 
     /**
      * 指定在主进程和工具进程中运行
@@ -1496,7 +1496,7 @@ accountConfig.edit()
 #### 接口定义
 
 ```kotlin
-package dev.ujhhgtg.wekit.hooks.sdk.protocol.abc
+package dev.ujhhgtg.wekit.features.sdk.protocol.abc
 
 interface IWePkgInterceptor {
     /**
@@ -1544,7 +1544,7 @@ interface IWePkgInterceptor {
 ##### 步骤 1: 创建拦截器类
 
 ```kotlin
-import dev.ujhhgtg.wekit.hooks.sdk.protocol.abc.IWePkgInterceptor
+import dev.ujhhgtg.wekit.features.sdk.protocol.abc.IWePkgInterceptor
 
 class MyPacketInterceptor : IWePkgInterceptor {
 
@@ -1571,7 +1571,7 @@ class MyPacketInterceptor : IWePkgInterceptor {
 在 Hook 入口点（通常是 `onEnable()` 方法）中注册拦截器：
 
 ```kotlin
-import dev.ujhhgtg.wekit.hooks.sdk.protocol.WePkgManager
+import dev.ujhhgtg.wekit.features.sdk.protocol.WePkgManager
 
 override fun onEnable() {
     WePkgManager.addInterceptor(this)
@@ -1692,23 +1692,23 @@ val modifiedBytes: ByteArray = data.toPacketBytes()
 以下是一个完整的实战示例，展示如何拦截收银台数据包并修改余额显示：
 
 ```kotlin
-package dev.ujhhgtg.wekit.hooks.item.chat.risk
+package dev.ujhhgtg.wekit.features.item.chat.risk
 
 import android.content.Context
 import android.text.InputType
 import dev.ujhhgtg.wekit.config.WePrefs
-import dev.ujhhgtg.wekit.core.model.ClickableHookItem
-import dev.ujhhgtg.wekit.hooks.core.annotation.HookItem
-import dev.ujhhgtg.wekit.hooks.sdk.protocol.WePkgManager
-import dev.ujhhgtg.wekit.hooks.sdk.protocol.abc.IWePkgInterceptor
+import dev.ujhhgtg.wekit.core.model.ClickableFeature
+import dev.ujhhgtg.wekit.features.core.annotation.Feature
+import dev.ujhhgtg.wekit.features.sdk.protocol.WePkgManager
+import dev.ujhhgtg.wekit.features.sdk.protocol.abc.IWePkgInterceptor
 import dev.ujhhgtg.wekit.ui.creator.dialog.BaseRikkaDialog
 import dev.ujhhgtg.wekit.util.WeProtoData
 import dev.ujhhgtg.wekit.util.log.WeLogger
 import org.json.JSONArray
 import org.json.JSONObject
 
-@HookItem(path = "聊天与消息/修改转账时的余额", description = "点击配置")
-class HookQueryCashierPkg : ClickableHookItem(), IWePkgInterceptor {
+@Feature(path = "聊天与消息/修改转账时的余额", description = "点击配置")
+class HookQueryCashierPkg : ClickableFeature(), IWePkgInterceptor {
 
     companion object {
         private const val KEY_CFT_BALANCE = "cashier_cft_balance"
@@ -1874,7 +1874,7 @@ WeLogger.i("MyInterceptor", "篡改完成，返回新数据包")
 **4. 资源清理**
 
 ```kotlin
-class MyHook : BaseHookItem(), IWePkgInterceptor {
+class MyHook : BaseFeature(), IWePkgInterceptor {
     override fun onLoad(classLoader: ClassLoader) {
         WePkgManager.addInterceptor(this)
     }
@@ -2010,11 +2010,11 @@ WeLogger.w("警告信息")
 WeLogger.e("错误信息")
 
 // 带 Tag 的日志输出（推荐）
-WeLogger.d("MyHookItem", "Hook 成功")
+WeLogger.d("MyFeature", "Hook 成功")
 WeLogger.i("AntiRevoke", "已阻止消息撤回")
 
 // 异常日志
-WeLogger.e("MyHookItem", "Hook 失败", exception)
+WeLogger.e("MyFeature", "Hook 失败", exception)
 WeLogger.e(exception)
 
 // 数值日志
@@ -2075,7 +2075,7 @@ WeLogger.d("Count", 123L)
 #### 最佳实践
 
 ```kotlin
-class MyHookItem : SwitchHookItem() {
+class MyFeature : SwitchFeature() {
 
     override fun onEnable() {
         try {
@@ -2084,7 +2084,7 @@ class MyHookItem : SwitchHookItem() {
                 hook {
                     beforeIfEnabled {
                         // ✅ 使用带 Tag 的日志，便于定位
-                        WeLogger.d("MyHookItem", "Hook 执行: ${param.method.name}")
+                        WeLogger.d("MyFeature", "Hook 执行: ${param.method.name}")
 
                         // 处理逻辑
                         resultNull()
@@ -2093,11 +2093,11 @@ class MyHookItem : SwitchHookItem() {
             }
 
             // ✅ 记录成功信息
-            WeLogger.i("MyHookItem", "Hook 安装成功")
+            WeLogger.i("MyFeature", "Hook 安装成功")
 
         } catch (e: Throwable) {
             // ✅ 记录异常，包含上下文信息
-            WeLogger.e("MyHookItem", "Hook 安装失败", e)
+            WeLogger.e("MyFeature", "Hook 安装失败", e)
         }
     }
 }
@@ -2128,7 +2128,7 @@ class MyHookItem : SwitchHookItem() {
 
 ```kotlin
 // 类名：PascalCase
-class MyHookItem : BaseHookItem()
+class MyFeature : BaseFeature()
 
 // 函数名：camelCase
 fun doSomething() { }

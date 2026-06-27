@@ -1,4 +1,6 @@
 package com.tencent.mm.plugin.sns.ui;
 
-public class SnsUploadUI {
+import android.app.Activity;
+
+public class SnsUploadUI extends Activity {
 }

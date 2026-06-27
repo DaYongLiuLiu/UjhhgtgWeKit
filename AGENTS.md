@@ -16,7 +16,7 @@
 ## Project Structure
 
 - `app/` — main Android module, entrypoints, hooks, UI, native Rust lib
-- `libs/common/annotation-scanner/` — KSP annotation processor (`@HookItem` scanner)
+- `libs/common/annotation-scanner/` — KSP annotation processor (`@Feature` scanner)
 - `libs/common/libxposed-api/` — compileOnly LibXposed API interface stubs (compileOnly since they are provided by user's Xposed framework)
 - `libs/common/bsh/` — submodule: forked BeanShell interpreter with snapshot serialization (`BshSnapshot`, `BshSnapshotHelper`); snapshots are encrypted AST byte representations used by the WAuxiliary Xposed module; `app/src/main/java/dev/ujhhgtg/wekit/utils/BshSnapshotDecompiler.kt` — decompiles encrypted BeanShell snapshot files back into Java-like source code; the AES key was recovered from WAuxiliary's decompiled source
 - `libs/common/reflekt/` — submodule: reflection utility library (`dev.ujhhgtg.reflekt`)
@@ -28,8 +28,8 @@
 
 - Xposed entry: `dev.ujhhgtg.wekit.loader.entry.lsp10x.Lsp10xUnifiedHookEntry` (libxposed 101 & 100) and legacy Xposed API (51+) entry: `dev.ujhhgtg.wekit.loader.entry.xp51.Xp51HookEntry`
 - Unified flow: `UnifiedEntryPoint.entry()` → `StartupAgent.startup()` → `WeLauncher.init()`
-- Hook items annotated with `@HookItem(path, description)`, auto-discovered by KSP annotation scanner at compile time
-- Base classes: `SwitchHookItem` (toggle on/off), `ClickableHookItem` (toggle on/off with onClick event), `ApiHookItem` (always-on), `BaseHookItem` (abstract base, do not use directly)
+- Hook items annotated with `@Feature(path, description)`, auto-discovered by KSP annotation scanner at compile time
+- Base classes: `SwitchFeature` (toggle on/off), `ClickableFeature` (toggle on/off with onClick event), `ApiFeature` (always-on), `BaseFeature` (abstract base, do not use directly)
 - DEX analysis via DexKit with `IResolveDex` interface; method resolve body MD5-hashed for cache (
   `GenerateMethodHashesTask`)
 - DEX-resolved targets DSL: `val methodTarget by dexMethod()` `val classTarget by dexClass()` delegate → `methodTarget.hookBefore { ... }`, `val method: Method = methodTarget.method`, `val clazz = classTarget.clazz`

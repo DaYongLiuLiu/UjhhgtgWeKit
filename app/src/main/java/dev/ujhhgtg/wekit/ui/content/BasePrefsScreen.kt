@@ -120,7 +120,7 @@ private sealed class PrefRow {
         val onClick: ((Context) -> Unit)?,
     ) : PrefRow()
 
-    data class HookSwitch(
+    data class FeatureSwitch(
         override val rowKey: String,
         val configKey: String,
         val title: String,
@@ -130,7 +130,7 @@ private sealed class PrefRow {
         val bindCompletionCallback: ((Boolean) -> Unit) -> Unit,
     ) : PrefRow()
 
-    data class HookClickable(
+    data class FeatureClickable(
         override val rowKey: String,
         val configKey: String,
         val title: String,
@@ -382,7 +382,7 @@ abstract class BasePrefsScreen(private val title: String) {
         bindCompletionCallback: ((Boolean) -> Unit) -> Unit,
     ) {
         val rk = nextKey("hsw_$key")
-        rows += PrefRow.HookSwitch(rk, key, title, summary, initialChecked, onBeforeToggle, bindCompletionCallback)
+        rows += PrefRow.FeatureSwitch(rk, key, title, summary, initialChecked, onBeforeToggle, bindCompletionCallback)
     }
 
     protected fun addHookClickable(
@@ -396,7 +396,7 @@ abstract class BasePrefsScreen(private val title: String) {
         onClick: (Context) -> Unit
     ) {
         val rk = nextKey("hcl_$key")
-        rows += PrefRow.HookClickable(rk, key, title, summary, showSwitch, initialChecked, onBeforeToggle, bindCompletionCallback, onClick)
+        rows += PrefRow.FeatureClickable(rk, key, title, summary, showSwitch, initialChecked, onBeforeToggle, bindCompletionCallback, onClick)
     }
 
     protected fun addFakeSearchBar(onClick: (Context) -> Unit) {
@@ -421,8 +421,8 @@ private fun PreferenceCoreList(
     val switchStates = remember(rows) {
         mutableStateMapOf<String, Boolean>().also { map ->
             rows.filterIsInstance<PrefRow.Switch>().forEach { map[it.configKey] = WePrefs.getBoolOrFalse(it.configKey) }
-            rows.filterIsInstance<PrefRow.HookSwitch>().forEach { map[it.configKey] = it.initialChecked }
-            rows.filterIsInstance<PrefRow.HookClickable>().forEach { map[it.configKey] = it.initialChecked }
+            rows.filterIsInstance<PrefRow.FeatureSwitch>().forEach { map[it.configKey] = it.initialChecked }
+            rows.filterIsInstance<PrefRow.FeatureClickable>().forEach { map[it.configKey] = it.initialChecked }
         }
     }
 
@@ -493,7 +493,7 @@ private fun PreferenceCoreList(
                         )
                     }
                 }
-                is PrefRow.HookSwitch -> {
+                is PrefRow.FeatureSwitch -> {
                     val checked = switchStates[row.configKey] ?: row.initialChecked
                     DisposableEffect(row.rowKey) {
                         row.bindCompletionCallback { switchStates[row.configKey] = it }
@@ -509,7 +509,7 @@ private fun PreferenceCoreList(
                         },
                     )
                 }
-                is PrefRow.HookClickable -> {
+                is PrefRow.FeatureClickable -> {
                     val checked = switchStates[row.configKey] ?: row.initialChecked
                     DisposableEffect(row.rowKey) {
                         row.bindCompletionCallback { switchStates[row.configKey] = it }

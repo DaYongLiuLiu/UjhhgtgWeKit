@@ -10,7 +10,7 @@ import java.lang.reflect.Executable
 
 typealias HookAction = XC_MethodHook.MethodHookParam.() -> Unit
 
-// most extension methods are inside BaseHookItem for enabled state checking
+// most extension methods are inside BaseFeature for enabled state checking
 
 inline fun BaseReflectedMethod.hookBeforeDirectly(
     priority: Int = 50,

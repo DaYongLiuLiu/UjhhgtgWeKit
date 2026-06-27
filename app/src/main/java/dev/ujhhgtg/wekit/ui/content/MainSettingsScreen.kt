@@ -76,11 +76,11 @@ import dev.ujhhgtg.wekit.activity.StandardActivity
 import dev.ujhhgtg.wekit.activity.TransparentActivity
 import dev.ujhhgtg.wekit.constants.PackageNames
 import dev.ujhhgtg.wekit.constants.Preferences
-import dev.ujhhgtg.wekit.hooks.core.ClickableHookItem
-import dev.ujhhgtg.wekit.hooks.core.SwitchHookItem
-import dev.ujhhgtg.wekit.hooks.items.debug.ResetDexCache
-import dev.ujhhgtg.wekit.hooks.items.easter_egg.AprilFools
-import dev.ujhhgtg.wekit.hooks.items.easter_egg.isAprilFools
+import dev.ujhhgtg.wekit.features.core.ClickableFeature
+import dev.ujhhgtg.wekit.features.core.SwitchFeature
+import dev.ujhhgtg.wekit.features.items.debug.ResetDexCache
+import dev.ujhhgtg.wekit.features.items.easter_egg.AprilFools
+import dev.ujhhgtg.wekit.features.items.easter_egg.isAprilFools
 import dev.ujhhgtg.wekit.preferences.WePrefs
 import dev.ujhhgtg.wekit.ui.content.aboutlibraries.AboutLibrariesScreen
 import dev.ujhhgtg.wekit.ui.content.aboutlibraries.LibrariesPanel
@@ -465,7 +465,7 @@ private fun showSearchDialog(context: Context) {
 
         // Filter target switchable/clickable hook items
         val searchableItems = remember {
-            dev.ujhhgtg.wekit.hooks.core.HookItemsProvider.ALL_HOOK_ITEMS.filterIsInstance<SwitchHookItem>()
+            dev.ujhhgtg.wekit.features.core.FeaturesProvider.ALL_HOOK_ITEMS.filterIsInstance<SwitchFeature>()
         }
 
         val filteredItems = remember(searchQuery) {
@@ -546,7 +546,7 @@ private fun showSearchDialog(context: Context) {
                             }
 
                             when (item) {
-                                is ClickableHookItem -> {
+                                is ClickableFeature -> {
                                     HookClickableRow(
                                         title = item.name,
                                         summary = item.description,
@@ -564,7 +564,7 @@ private fun showSearchDialog(context: Context) {
                                         }
                                     )
                                 }
-                                is SwitchHookItem -> {
+                                is SwitchFeature -> {
                                     HookSwitchRow(
                                         title = item.name,
                                         summary = item.description,

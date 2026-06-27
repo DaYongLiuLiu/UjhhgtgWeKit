@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.dp
 import dev.ujhhgtg.comptime.nameOf
 import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.cache.DexCacheManager
-import dev.ujhhgtg.wekit.hooks.core.BaseHookItem
+import dev.ujhhgtg.wekit.features.core.BaseFeature
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.android.copyToClipboard
 import dev.ujhhgtg.wekit.utils.android.showToast
@@ -105,7 +105,7 @@ fun DexResolver(
         dexKit: DexKitBridge,
         progressChannel: Channel<ScanProgress>
     ): ScanResult {
-        val displayName = if (item is BaseHookItem) item.displayName else unreachable()
+        val displayName = if (item is BaseFeature) item.displayName else unreachable()
         return try {
             progressChannel.send(ScanProgress.Start(displayName))
 

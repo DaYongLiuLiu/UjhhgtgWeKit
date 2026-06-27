@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.composables.icons.materialsymbols.MaterialSymbols
 import com.composables.icons.materialsymbols.outlined.Search
-import dev.ujhhgtg.wekit.hooks.api.core.models.IWeContact
+import dev.ujhhgtg.wekit.features.api.core.models.IWeContact
 import kotlinx.coroutines.launch
 import java.text.Collator
 import java.util.Locale

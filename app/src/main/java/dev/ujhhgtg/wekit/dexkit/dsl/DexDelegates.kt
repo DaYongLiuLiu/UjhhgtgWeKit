@@ -4,7 +4,7 @@ import dev.ujhhgtg.comptime.nameOf
 import dev.ujhhgtg.reflekt.reflekt
 import dev.ujhhgtg.reflekt.utils.toClassOrNull
 import dev.ujhhgtg.wekit.dexkit.DexMethodDescriptor
-import dev.ujhhgtg.wekit.hooks.core.BaseHookItem
+import dev.ujhhgtg.wekit.features.core.BaseFeature
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.reflection.ClassLoaders
 import org.luckypray.dexkit.DexKitBridge
@@ -44,7 +44,7 @@ sealed interface BaseDexDelegate {
 class DexClassDelegate internal constructor(
     override val key: String,
     private val inlineBlock: ((DexClassDelegate, DexKitBridge) -> Boolean)? = null
-) : ReadOnlyProperty<BaseHookItem, DexClassDelegate>, BaseDexDelegate {
+) : ReadOnlyProperty<BaseFeature, DexClassDelegate>, BaseDexDelegate {
 
     private var descriptorString: String? = null
     private var cachedClass: Class<*>? = null
@@ -115,7 +115,7 @@ class DexClassDelegate internal constructor(
         return inlineBlock?.invoke(this, dexKit) ?: true
     }
 
-    override fun getValue(thisRef: BaseHookItem, property: KProperty<*>): DexClassDelegate = this
+    override fun getValue(thisRef: BaseFeature, property: KProperty<*>): DexClassDelegate = this
 }
 
 // ---------------------------------------------------------------------------
@@ -128,7 +128,7 @@ class DexClassDelegate internal constructor(
 class DexFieldDelegate internal constructor(
     override val key: String,
     private val inlineBlock: ((DexFieldDelegate, DexKitBridge) -> Boolean)? = null
-) : ReadOnlyProperty<BaseHookItem, DexFieldDelegate>, BaseDexDelegate {
+) : ReadOnlyProperty<BaseFeature, DexFieldDelegate>, BaseDexDelegate {
 
     private var descriptorString: String? = null
     private var cachedField: Field? = null
@@ -192,7 +192,7 @@ class DexFieldDelegate internal constructor(
         return inlineBlock?.invoke(this, dexKit) ?: true
     }
 
-    override fun getValue(thisRef: BaseHookItem, property: KProperty<*>): DexFieldDelegate = this
+    override fun getValue(thisRef: BaseFeature, property: KProperty<*>): DexFieldDelegate = this
 
     private fun getFieldInstance(descriptor: String): Field {
         val arrow = descriptor.indexOf("->")
@@ -227,7 +227,7 @@ class DexFieldDelegate internal constructor(
 class DexMethodDelegate internal constructor(
     override val key: String,
     private val inlineBlock: ((DexMethodDelegate, DexKitBridge) -> Boolean)? = null
-) : ReadOnlyProperty<BaseHookItem, DexMethodDelegate>, BaseDexDelegate {
+) : ReadOnlyProperty<BaseFeature, DexMethodDelegate>, BaseDexDelegate {
 
     private var descriptor: DexMethodDescriptor? = null
     private var cachedMethod: Method? = null
@@ -306,7 +306,7 @@ class DexMethodDelegate internal constructor(
         return inlineBlock?.invoke(this, dexKit) ?: true
     }
 
-    override fun getValue(thisRef: BaseHookItem, property: KProperty<*>): DexMethodDelegate = this
+    override fun getValue(thisRef: BaseFeature, property: KProperty<*>): DexMethodDelegate = this
 }
 
 // ---------------------------------------------------------------------------
@@ -319,7 +319,7 @@ class DexMethodDelegate internal constructor(
 class DexConstructorDelegate internal constructor(
     override val key: String,
     private val inlineBlock: ((DexConstructorDelegate, DexKitBridge) -> Boolean)? = null
-) : ReadOnlyProperty<BaseHookItem, DexConstructorDelegate>, BaseDexDelegate {
+) : ReadOnlyProperty<BaseFeature, DexConstructorDelegate>, BaseDexDelegate {
 
     private var descriptor: DexMethodDescriptor? = null
     private var cachedConstructor: Constructor<*>? = null
@@ -389,44 +389,44 @@ class DexConstructorDelegate internal constructor(
         return inlineBlock?.invoke(this, dexKit) ?: true
     }
 
-    override fun getValue(thisRef: BaseHookItem, property: KProperty<*>): DexConstructorDelegate = this
+    override fun getValue(thisRef: BaseFeature, property: KProperty<*>): DexConstructorDelegate = this
 }
 
 // ---------------------------------------------------------------------------
-// 委托工厂函数 — 自动注册到父 HookItem
+// 委托工厂函数 — 自动注册到父 Feature
 // ---------------------------------------------------------------------------
 
 /**
- * 创建 dexConstructor 委托，并将其注册到所属 HookItem 的委托列表中。
+ * 创建 dexConstructor 委托，并将其注册到所属 Feature 的委托列表中。
  */
-fun dexConstructor(): PropertyDelegateProvider<BaseHookItem, ReadOnlyProperty<BaseHookItem, DexConstructorDelegate>> =
+fun dexConstructor(): PropertyDelegateProvider<BaseFeature, ReadOnlyProperty<BaseFeature, DexConstructorDelegate>> =
     PropertyDelegateProvider { item, property ->
         val key = "${item::class.simpleName}:${property.name}"
         DexConstructorDelegate(key).also { item.registerDexDelegate(it) }
     }
 
 /**
- * 创建 dexClass 委托，并将其注册到所属 HookItem 的委托列表中。
+ * 创建 dexClass 委托，并将其注册到所属 Feature 的委托列表中。
  */
-fun dexClass(): PropertyDelegateProvider<BaseHookItem, ReadOnlyProperty<BaseHookItem, DexClassDelegate>> =
+fun dexClass(): PropertyDelegateProvider<BaseFeature, ReadOnlyProperty<BaseFeature, DexClassDelegate>> =
     PropertyDelegateProvider { item, property ->
         val key = "${item::class.simpleName}:${property.name}"
         DexClassDelegate(key).also { item.registerDexDelegate(it) }
     }
 
 /**
- * 创建 dexField 委托，并将其注册到所属 HookItem 的委托列表中。
+ * 创建 dexField 委托，并将其注册到所属 Feature 的委托列表中。
  */
-fun dexField(): PropertyDelegateProvider<BaseHookItem, ReadOnlyProperty<BaseHookItem, DexFieldDelegate>> =
+fun dexField(): PropertyDelegateProvider<BaseFeature, ReadOnlyProperty<BaseFeature, DexFieldDelegate>> =
     PropertyDelegateProvider { item, property ->
         val key = "${item::class.simpleName}:${property.name}"
         DexFieldDelegate(key).also { item.registerDexDelegate(it) }
     }
 
 /**
- * 创建 dexMethod 委托，并将其注册到所属 HookItem 的委托列表中。
+ * 创建 dexMethod 委托，并将其注册到所属 Feature 的委托列表中。
  */
-fun dexMethod(): PropertyDelegateProvider<BaseHookItem, ReadOnlyProperty<BaseHookItem, DexMethodDelegate>> =
+fun dexMethod(): PropertyDelegateProvider<BaseFeature, ReadOnlyProperty<BaseFeature, DexMethodDelegate>> =
     PropertyDelegateProvider { item, property ->
         val key = "${item::class.simpleName}:${property.name}"
         DexMethodDelegate(key).also { item.registerDexDelegate(it) }
@@ -448,7 +448,7 @@ fun dexConstructor(
     throwOnFailure: Boolean = true,
     resultIndex: Int = 0,
     block: FindMethod.() -> Unit
-): PropertyDelegateProvider<BaseHookItem, ReadOnlyProperty<BaseHookItem, DexConstructorDelegate>> =
+): PropertyDelegateProvider<BaseFeature, ReadOnlyProperty<BaseFeature, DexConstructorDelegate>> =
     PropertyDelegateProvider { item, property ->
         val key = "${item::class.simpleName}:${property.name}"
         DexConstructorDelegate(key) { delegate, dexKit ->
@@ -464,7 +464,7 @@ fun dexClass(
     allowFailure: Boolean = false,
     multipleIndex: Int = 0,
     block: FindClass.() -> Unit
-): PropertyDelegateProvider<BaseHookItem, ReadOnlyProperty<BaseHookItem, DexClassDelegate>> =
+): PropertyDelegateProvider<BaseFeature, ReadOnlyProperty<BaseFeature, DexClassDelegate>> =
     PropertyDelegateProvider { item, property ->
         val key = "${item::class.simpleName}:${property.name}"
         DexClassDelegate(key) { delegate, dexKit ->
@@ -480,7 +480,7 @@ fun dexField(
     allowFailure: Boolean = false,
     resultIndex: Int = 0,
     block: FindField.() -> Unit
-): PropertyDelegateProvider<BaseHookItem, ReadOnlyProperty<BaseHookItem, DexFieldDelegate>> =
+): PropertyDelegateProvider<BaseFeature, ReadOnlyProperty<BaseFeature, DexFieldDelegate>> =
     PropertyDelegateProvider { item, property ->
         val key = "${item::class.simpleName}:${property.name}"
         DexFieldDelegate(key) { delegate, dexKit ->
@@ -496,7 +496,7 @@ fun dexMethod(
     allowFailure: Boolean = false,
     resultIndex: Int = 0,
     block: FindMethod.() -> Unit
-): PropertyDelegateProvider<BaseHookItem, ReadOnlyProperty<BaseHookItem, DexMethodDelegate>> =
+): PropertyDelegateProvider<BaseFeature, ReadOnlyProperty<BaseFeature, DexMethodDelegate>> =
     PropertyDelegateProvider { item, property ->
         val key = "${item::class.simpleName}:${property.name}"
         DexMethodDelegate(key) { delegate, dexKit ->
