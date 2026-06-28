@@ -14,14 +14,19 @@ import dev.ujhhgtg.wekit.features.core.Feature
 import dev.ujhhgtg.wekit.features.core.SwitchFeature
 import dev.ujhhgtg.wekit.features.items.chat.ChatInputBarEnhancements
 import dev.ujhhgtg.wekit.utils.WeLogger
+import dev.ujhhgtg.wekit.utils.android.showToastSuspend
 import dev.ujhhgtg.wekit.utils.fs.KnownPaths
-import dev.ujhhgtg.wekit.utils.fs.createDirectoriesNoThrow
+import dev.ujhhgtg.wekit.utils.fs.createDirsSafe
 import dev.ujhhgtg.wekit.utils.serialization.XmlUtils.extractXmlAttr
 import dev.ujhhgtg.wekit.utils.serialization.XmlUtils.extractXmlTag
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import me.hd.wauxv.data.bean.MsgInfoBean
-import java.nio.file.Files
+import me.hd.wauxv.data.bean.PayMsgBean
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.path.div
+import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
@@ -32,7 +37,7 @@ object JavaScriptingHook : SwitchFeature(), IResolveDex, WeDatabaseListenerApi.I
 
     private val TAG = This.Class.simpleName
 
-    private val SCRIPTS_DIR = (KnownPaths.moduleData / "scripts_java").createDirectoriesNoThrow()
+    private val SCRIPTS_DIR = (KnownPaths.moduleData / "scripts_java").createDirsSafe()
 
     val scripts = ConcurrentHashMap<String, JavaPlugin>()
 
@@ -61,36 +66,39 @@ object JavaScriptingHook : SwitchFeature(), IResolveDex, WeDatabaseListenerApi.I
 
         methodPayMsg.hookBefore {
             val g2Var = args[0] ?: return@hookBefore
-            val payMsgBean = me.hd.wauxv.data.bean.PayMsgBean(g2Var)
+            val payMsgBean = PayMsgBean(g2Var)
             JavaEngine.executeAllOnRecvPayMsg(scripts, payMsgBean)
         }
 
-        WeLogger.d(TAG, "loading java scripts...")
-        for (scriptDir in SCRIPTS_DIR.listDirectoryEntries().filter { it.isDirectory() }) {
-            val dirName = scriptDir.name
-            val mainFile = scriptDir / "main.java"
-            val infoFile = scriptDir / "info.prop"
-            if (!Files.exists(mainFile) || !Files.exists(infoFile)) {
-                WeLogger.w(TAG, "skipping '$dirName': missing main.java or info.prop")
-                continue
+        CoroutineScope(Dispatchers.IO).launch {
+            WeLogger.d(TAG, "loading java scripts...")
+            for (scriptDir in SCRIPTS_DIR.listDirectoryEntries().filter { it.isDirectory() }) {
+                val dirName = scriptDir.name
+                val mainFile = scriptDir / "main.java"
+                val infoFile = scriptDir / "info.prop"
+                if (!mainFile.exists() || !infoFile.exists()) {
+                    WeLogger.w(TAG, "skipping '$dirName': missing main.java or info.prop")
+                    continue
+                }
+
+                val content = runCatching { mainFile.readText() }.getOrElse { continue }
+                val infoPropContent = runCatching { infoFile.readText() }.getOrElse { continue }
+                val info = JavaPlugin.parseInfoProp(infoPropContent)
+                WeLogger.d(TAG, "loaded script, name='${info.name}', length=${content.length}")
+
+                val plugin = JavaPlugin(
+                    name = dirName,
+                    dir = scriptDir,
+                    info = info,
+                    content = content,
+                    interpreter = Interpreter(null, "")
+                )
+                scripts[dirName] = plugin
             }
+            showToastSuspend("已加载 ${scripts.size} 个 Java 脚本")
 
-            val content = runCatching { mainFile.readText() }.getOrElse { continue }
-            val infoPropContent = runCatching { infoFile.readText() }.getOrElse { continue }
-            val info = JavaPlugin.parseInfoProp(infoPropContent)
-            WeLogger.d(TAG, "loaded script, name='${info.name}', length=${content.length}")
-
-            val plugin = JavaPlugin(
-                name = dirName,
-                dir = scriptDir,
-                info = info,
-                content = content,
-                interpreter = Interpreter(null, "")
-            )
-            scripts[dirName] = plugin
+            JavaEngine.executeAllOnLoad(scripts)
         }
-
-        JavaEngine.executeAllOnLoad(scripts)
     }
 
     override fun onDisable() {

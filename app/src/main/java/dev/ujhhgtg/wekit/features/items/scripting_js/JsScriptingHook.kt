@@ -9,7 +9,7 @@ import dev.ujhhgtg.wekit.features.core.Feature
 import dev.ujhhgtg.wekit.features.core.SwitchFeature
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.fs.KnownPaths
-import dev.ujhhgtg.wekit.utils.fs.createDirectoriesNoThrow
+import dev.ujhhgtg.wekit.utils.fs.createDirsSafe
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.path.div
 import kotlin.io.path.listDirectoryEntries
@@ -22,7 +22,7 @@ object JsScriptingHook : SwitchFeature(),
 
     private val TAG = This.Class.simpleName
 
-    private val SCRIPTS_DIR = (KnownPaths.moduleData / "scripts_js").createDirectoriesNoThrow()
+    private val SCRIPTS_DIR = (KnownPaths.moduleData / "scripts_js").createDirsSafe()
 
     val scripts = ConcurrentHashMap<String, String>()
 

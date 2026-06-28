@@ -7,7 +7,7 @@ import dev.ujhhgtg.wekit.features.core.BaseFeature
 import dev.ujhhgtg.wekit.preferences.WePrefs
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.fs.KnownPaths
-import dev.ujhhgtg.wekit.utils.fs.createDirectoriesNoThrow
+import dev.ujhhgtg.wekit.utils.fs.createDirsSafe
 import dev.ujhhgtg.wekit.utils.unreachable
 import org.json.JSONObject
 import java.nio.file.Path
@@ -33,7 +33,7 @@ object DexCacheManager {
     private const val KEY_HOST_VERSION = "host_version"
 
     private val cacheDir: Path by lazy {
-        (KnownPaths.moduleData / CACHE_DIR_NAME).createDirectoriesNoThrow()
+        (KnownPaths.moduleData / CACHE_DIR_NAME).createDirsSafe()
     }
 
     fun init(currentVer: String) {

@@ -101,7 +101,9 @@ object ReMoment : SwitchFeature(), WeMomentsContextMenuApi.IMenuItemsProvider {
 
     private fun getNativeMediaListFromNativeTimeline(nativeTimeline: Any): LinkedList<*> {
         val nativeContentObj = nativeTimeline.reflekt().getField("ContentObj")!!
-        return nativeContentObj.reflekt().lastField {
+        return nativeContentObj.reflekt().firstField {
+            // 'h'
+            name { it.length == 1 && it[0] >= 'a' && it[0] <= 'r' }
             type = LinkedList::class
         }.get()!! as LinkedList<*>
     }

@@ -9,13 +9,13 @@ import kotlin.io.path.Path
 import kotlin.io.path.createDirectories
 
 @Suppress("NOTHING_TO_INLINE")
-inline fun Path.createDirectoriesNoThrow(): Path {
+inline fun Path.createDirsSafe(): Path {
     runCatching { createDirectories() }
     return this
 }
 
 inline val String.asPath get() = Path(this)
 
-inline val File.asPath get() = toPath()
+inline val File.asPath: Path get() = toPath()
 
-inline val Path.asAndroidUri get() = Uri.fromFile(toFile())
+inline val Path.asAndroidUri: Uri get() = Uri.fromFile(toFile())

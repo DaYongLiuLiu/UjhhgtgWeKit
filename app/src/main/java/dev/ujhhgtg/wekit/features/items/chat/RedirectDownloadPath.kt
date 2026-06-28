@@ -23,7 +23,7 @@ import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.android.showToast
 import dev.ujhhgtg.wekit.utils.fs.KnownPaths
-import dev.ujhhgtg.wekit.utils.fs.createDirectoriesNoThrow
+import dev.ujhhgtg.wekit.utils.fs.createDirsSafe
 import dev.ujhhgtg.wekit.utils.reflection.BString
 import java.io.File
 import java.util.Locale
@@ -197,7 +197,7 @@ object RedirectDownloadPath : ClickableFeature(), IResolveDex {
 
     private fun createDefaultSaveDir(): String {
         return (KnownPaths.internalStorage / "Download" / "WeiXin")
-            .createDirectoriesNoThrow()
+            .createDirsSafe()
             .absolutePathString()
     }
 

@@ -24,4 +24,8 @@ public class NeatTextView extends View {
     public TextView getWrappedTextView() {
         throw new RuntimeException("Stub!");
     }
+
+    public void setTextColor(int color) {
+        throw new RuntimeException("Stub!");
+    }
 }

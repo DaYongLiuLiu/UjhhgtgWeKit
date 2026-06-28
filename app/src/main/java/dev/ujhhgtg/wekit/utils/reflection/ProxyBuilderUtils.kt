@@ -3,7 +3,7 @@ package dev.ujhhgtg.wekit.utils.reflection
 import com.android.dx.stock.ProxyBuilder
 import dev.ujhhgtg.reflekt.reflekt
 import dev.ujhhgtg.wekit.utils.fs.KnownPaths
-import dev.ujhhgtg.wekit.utils.fs.createDirectoriesNoThrow
+import dev.ujhhgtg.wekit.utils.fs.createDirsSafe
 import dev.ujhhgtg.wekit.utils.hookAfterDirectly
 import java.lang.reflect.InvocationHandler
 import kotlin.io.path.div
@@ -16,7 +16,7 @@ fun <T : Any> createProxyBuilder(
     interfaces: Array<Class<*>>,
 ): ProxyBuilder<T> {
     return ProxyBuilder.forClass(baseClass)
-        .dexCache((KnownPaths.codeCacheDir / "generated_proxy_classes").createDirectoriesNoThrow().toFile())
+        .dexCache((KnownPaths.codeCacheDir / "generated_proxy_classes").createDirsSafe().toFile())
         .parentClassLoader(classLoader)
         .constructorArgTypes(*constructorArgs)
         .implementing(*interfaces)

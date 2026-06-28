@@ -34,7 +34,7 @@ import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.android.showToastSuspend
 import dev.ujhhgtg.wekit.utils.enumValueOfClass
 import dev.ujhhgtg.wekit.utils.fs.KnownPaths
-import dev.ujhhgtg.wekit.utils.fs.createDirectoriesNoThrow
+import dev.ujhhgtg.wekit.utils.fs.createDirsSafe
 import dev.ujhhgtg.wekit.utils.polyfills.intoList
 import dev.ujhhgtg.wekit.utils.reflection.DexKit
 import dev.ujhhgtg.wekit.utils.reflection.asClass
@@ -258,7 +258,7 @@ object StickersSync : ClickableFeature(), IResolveDex {
 
     private val stickersDir: Path by lazy {
         (KnownPaths.moduleData / "stickers")
-            .createDirectoriesNoThrow()
+            .createDirsSafe()
     }
 
 

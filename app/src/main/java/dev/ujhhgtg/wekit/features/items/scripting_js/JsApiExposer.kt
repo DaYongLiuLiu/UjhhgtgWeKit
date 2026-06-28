@@ -12,7 +12,7 @@ import dev.ujhhgtg.wekit.features.api.net.WePacketHelper
 import dev.ujhhgtg.wekit.utils.HostInfo
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.fs.KnownPaths
-import dev.ujhhgtg.wekit.utils.fs.createDirectoriesNoThrow
+import dev.ujhhgtg.wekit.utils.fs.createDirsSafe
 import dev.ujhhgtg.wekit.utils.hookAfterDirectly
 import dev.ujhhgtg.wekit.utils.hookBeforeDirectly
 import dev.ujhhgtg.wekit.utils.reflection.asMethod
@@ -178,7 +178,7 @@ object JsApiExposer {
                     }
 
                     return try {
-                        val cacheDir = (KnownPaths.moduleCache / "javascript_http_api").createDirectoriesNoThrow()
+                        val cacheDir = (KnownPaths.moduleCache / "javascript_http_api").createDirsSafe()
 
                         // drop cache if total size of files exceeds limit
                         val totalBytes = try {
@@ -519,7 +519,7 @@ object JsApiExposer {
     @Suppress("JavaCollectionWithNullableTypeArgument")
     private val storage = ConcurrentHashMap<String, Any?>()
 
-    private val DATA_DIR_PATH by lazy { (KnownPaths.moduleData / "data").createDirectoriesNoThrow() }
+    private val DATA_DIR_PATH by lazy { (KnownPaths.moduleData / "data").createDirsSafe() }
 
     private val storageFile get() = DATA_DIR_PATH.resolve("javascript_storage_api.json")
 

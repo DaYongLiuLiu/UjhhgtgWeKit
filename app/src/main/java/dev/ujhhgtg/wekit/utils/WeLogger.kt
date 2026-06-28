@@ -3,7 +3,7 @@ package dev.ujhhgtg.wekit.utils
 import android.util.Log
 import dev.ujhhgtg.wekit.BuildConfig
 import dev.ujhhgtg.wekit.utils.fs.KnownPaths
-import dev.ujhhgtg.wekit.utils.fs.createDirectoriesNoThrow
+import dev.ujhhgtg.wekit.utils.fs.createDirsSafe
 import java.io.FileWriter
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -39,7 +39,7 @@ object WeLogger {
         writer = null
 
         val logsDir = runCatching {
-            (KnownPaths.moduleData / "logs").createDirectoriesNoThrow()
+            (KnownPaths.moduleData / "logs").createDirsSafe()
         }.getOrNull() ?: return null
 
         // Clean up logs older than 3 days during rotation/initialization

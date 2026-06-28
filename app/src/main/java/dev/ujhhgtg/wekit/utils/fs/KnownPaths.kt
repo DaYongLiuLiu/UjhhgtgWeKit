@@ -9,25 +9,29 @@ import kotlin.io.path.div
 object KnownPaths {
 
     val internalStorage: Path by lazy {
-        Environment.getExternalStorageDirectory().toPath()
+        Environment.getExternalStorageDirectory().asPath
     }
 
     val moduleData by lazy {
         (internalStorage / "Android" / "data" / HostInfo.packageName / BuildConfig.TAG)
-            .createDirectoriesNoThrow()
+            .createDirsSafe()
     }
 
-    val codeCacheDir by lazy {
-        HostInfo.application.codeCacheDir.toPath()
+    val codeCacheDir: Path by lazy {
+        HostInfo.application.codeCacheDir.asPath
     }
 
     val moduleCache by lazy {
         (internalStorage / "Android" / "data" / HostInfo.packageName / "cache" / BuildConfig.TAG)
-            .createDirectoriesNoThrow()
+            .createDirsSafe()
+    }
+
+    val moduleAssets by lazy {
+        (moduleData / "assets").createDirsSafe()
     }
 
     val downloads by lazy {
         (Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toPath() / "WeKit")
-            .createDirectoriesNoThrow()
+            .createDirsSafe()
     }
 }
