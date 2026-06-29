@@ -213,9 +213,7 @@ fn write_padded_u64(buf: &mut [u8], mut n: u64, width: usize) -> usize {
     let digits = &tmp[i..];
     let pad = width.saturating_sub(digits.len());
     let total = pad + digits.len();
-    for j in 0..pad {
-        buf[j] = b'0';
-    }
+    buf[..pad].fill(b'0');
     buf[pad..total].copy_from_slice(digits);
     total
 }
@@ -490,7 +488,7 @@ unsafe fn write_crash_log(sig: c_int, info: *mut siginfo_t, ctx: *mut c_void) {
         // ── Memory maps ───────────────────────────────────────────────────────────
         w.s("\n");
         w.sep("Memory Maps");
-        let maps_fd = open(b"/proc/self/maps\0".as_ptr() as *const c_char, O_RDONLY);
+        let maps_fd = open(c"/proc/self/maps".as_ptr(), O_RDONLY);
         if maps_fd >= 0 {
             let mut buf = [0u8; 8192];
             loop {

@@ -18,6 +18,8 @@ symphonia = { version = "0.6", features = [
 ], default-features = false }
 mp3lame-encoder = "0.2"
 anyhow = "1"
+libsql = { version = "0.6.0", default-features = false, features = ["core"] }
+tokio = { version = "1", default-features = false, features = ["rt", "sync"] }
 
 [profile.release]
 opt-level = "z"

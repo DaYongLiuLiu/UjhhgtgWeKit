@@ -11,7 +11,9 @@ abstract class WePrefs protected constructor() : SharedPreferences, SharedPrefer
         return getBoolean(key, false)
     }
 
-    abstract fun getString(key: String): String?
+    fun getString(key: String): String? {
+        return getString(key, null)
+    }
 
     fun getStringOrDef(key: String, def: String): String {
         return getString(key, def)!!
@@ -23,7 +25,7 @@ abstract class WePrefs protected constructor() : SharedPreferences, SharedPrefer
     }
 
     fun getStringSetOrDef(key: String, def: Set<String>): Set<String> {
-        return default.getStringSet(key, def)!!
+        return getStringSet(key, def)!!
     }
 
     abstract fun getObject(key: String): Any?

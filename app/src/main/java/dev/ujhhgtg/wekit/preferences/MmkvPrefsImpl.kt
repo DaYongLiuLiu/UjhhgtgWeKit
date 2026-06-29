@@ -14,10 +14,8 @@ class MmkvPrefsImpl(name: String) : WePrefs() {
 
     private val mmkvInstance = MMKV.mmkvWithID(name, MMKV.MULTI_PROCESS_MODE)
 
-    val mCacheMap = HashMap<String, MutableMap.MutableEntry<String, Any?>>()
-
     companion object {
-        const val TYPE_SUFFIX = $$"$shadow$type"
+        const val TYPE_SUFFIX = "\$shadow\$type"
         private const val TYPE_BOOL = 0x80 + 2
         private const val TYPE_INT = 0x80 + 4
         private const val TYPE_LONG = 0x80 + 6
@@ -28,98 +26,20 @@ class MmkvPrefsImpl(name: String) : WePrefs() {
         private const val TYPE_SERIALIZABLE = 0x80 + 41
     }
 
-    inner class VirtEntry(override val key: String) : MutableMap.MutableEntry<String, Any?> {
-        override val value: Any? get() = getObject(key)
-        override fun setValue(newValue: Any?): Any = putObject(key, newValue!!)
-        override fun equals(other: Any?): Boolean = other is VirtEntry && key == other.key
-        override fun hashCode(): Int = key.hashCode()
-    }
-
-    private val mVirtEntrySet: MutableSet<MutableMap.MutableEntry<String, Any?>> =
-        object : AbstractMutableSet<MutableMap.MutableEntry<String, Any?>>() {
-            override val size: Int get() = mShadowMap.size
-            override fun isEmpty(): Boolean = mShadowMap.isEmpty()
-
-            override fun contains(element: MutableMap.MutableEntry<String, Any?>): Boolean =
-                any { it == element }
-
-            override fun iterator(): MutableIterator<MutableMap.MutableEntry<String, Any?>> =
-                object : MutableIterator<MutableMap.MutableEntry<String, Any?>> {
-                    val iterator = mShadowMap.keys.iterator()
-                    override fun hasNext(): Boolean = iterator.hasNext()
-                    override fun next(): MutableMap.MutableEntry<String, Any?> {
-                        val key = iterator.next()
-                        return mCacheMap.getOrPut(key) { VirtEntry(key) }
-                    }
-
-                    override fun remove() = throw UnsupportedOperationException("entry set")
-                }
-
-            override fun add(element: MutableMap.MutableEntry<String, Any?>): Boolean =
-                throw UnsupportedOperationException("entry set")
-        }
-
-    private val mVirtValues: MutableCollection<Any?> = object : AbstractMutableCollection<Any?>() {
-        override val size: Int get() = mShadowMap.size
-        override fun isEmpty(): Boolean = mShadowMap.isEmpty()
-        override fun contains(element: Any?): Boolean = any { it == element }
-
-        override fun iterator(): MutableIterator<Any?> =
-            object : MutableIterator<Any?> {
-                val iterator = mShadowMap.keys.iterator()
-                override fun hasNext(): Boolean = iterator.hasNext()
-                override fun next(): Any? = getObject(iterator.next())
-                override fun remove() = throw UnsupportedOperationException("entry set")
-            }
-
-        override fun add(element: Any?): Boolean =
-            throw UnsupportedOperationException("entry set")
-    }
-
-    val mShadowMap: MutableMap<String, Any?> = object : AbstractMutableMap<String, Any?>() {
-        override val size: Int get() = entries.size
-        override fun isEmpty(): Boolean = size == 0
-        override fun containsKey(key: String): Boolean = this@MmkvPrefsImpl.containsKey(key)
-
-        override fun containsValue(value: Any?): Boolean = entries.any { it == value }
-
-        override fun get(key: String): Any? = getObject(key)
-
-        override fun put(key: String, value: Any?): Any? {
-            val old = getObject(key)
-            putObject(key, value!!)
-            return old
-        }
-
-        override fun remove(key: String): Any? {
+    override fun getAll(): Map<String, *> {
+        val keys = mmkvInstance.allKeys() ?: return emptyMap<String, Any?>()
+        val map = HashMap<String, Any?>()
+        for (key in keys) {
+            if (key.endsWith(TYPE_SUFFIX)) continue
             val obj = getObject(key)
-            if (obj != null) mmkvInstance.remove(key)
-            return obj
+            if (obj != null) {
+                map[key] = obj
+            }
         }
-
-        override fun putAll(from: Map<out String, Any?>) {
-            for ((key, value) in from) putObject(key, value!!)
-        }
-
-        override fun clear() {
-            mmkvInstance.clear()
-        }
-
-        override val keys: MutableSet<String>
-            get() = (mmkvInstance.allKeys()
-                ?.filterNot { it.endsWith(TYPE_SUFFIX) }
-                ?.toHashSet()
-                ?: hashSetOf()) as MutableSet<String>
-
-        override val values: MutableCollection<Any?> get() = mVirtValues
-        override val entries: MutableSet<MutableMap.MutableEntry<String, Any?>> get() = mVirtEntrySet
+        return map
     }
 
-    override fun getAll(): Map<String, *> = mShadowMap
-
-    override fun getString(key: String): String? = mmkvInstance.getString(key, null)
-
-    override fun getString(key: String, defValue: String?): String? =
+    override fun getString(key: String?, defValue: String?): String? =
         mmkvInstance.getString(key, defValue)
 
     override fun getStringSet(key: String, defValues: Set<String>?): Set<String>? =
