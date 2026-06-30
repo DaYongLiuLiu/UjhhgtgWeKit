@@ -18,6 +18,8 @@
 
 [Telegram 超级群组](https://t.me/+4XsfR-SWAtk1NGRl)
 
+[爱发电](https://ifdian.net/a/ujhhgtg)
+
 ## 致谢
 
 [WeKit 上游](https://github.com/cwuom/WeKit)
