@@ -189,6 +189,87 @@ object ChatInputBarEnhancements : SwitchFeature(), IResolveDex {
                                                 }
                                             }
                                         }
+
+//                                        ActionItem(
+//                                            icon = MaterialSymbols.Outlined.Visibility_off,
+//                                            label = "隐藏@"
+//                                        ) {
+//                                            val content = chatFooter.lastText
+//
+//                                            if (content.isEmpty()) {
+//                                                showToast("消息内容为空!")
+//                                                return@ActionItem
+//                                            }
+//
+//                                            showComposeDialog(context) {
+//                                                ContactsSelector(
+//                                                    title = "选择要@的好友",
+//                                                    contacts = WeDatabaseApi.getGroupMembers(WeCurrentConversationApi.value),
+//                                                    initialSelectedWxIds = emptySet(),
+//                                                    onDismiss = onDismiss,
+//                                                    onConfirm = { contacts ->
+//                                                        if (contacts.isEmpty()) {
+//                                                            showToast("请选择至少一个好友")
+//                                                            return@ContactsSelector
+//                                                        }
+//
+//                                                        onDismiss()
+//                                                        val reqBody = buildJsonObject {
+//                                                            put("1", 1)
+//                                                            putJsonObject("2") {
+//                                                                putJsonObject("1") {
+//                                                                    put("1", WeCurrentConversationApi.value)
+//                                                                }
+//                                                                put("2", """
+//                                                                <?xml version="1.0"?>
+//                                                                <msg>
+//                                                                    <appmsg>
+//                                                                        <title>${content}</title>
+//                                                                        <action>view</action>
+//                                                                        <type>57</type>
+//                                                                        <finderLiveProductShare>
+//                                                                            <isPriceBeginShow>false</isPriceBeginShow>
+//                                                                        </finderLiveProductShare>
+//                                                                        <gameshare>
+//                                                                            <appbrandext>
+//                                                                                <priority>-1</priority>
+//                                                                            </appbrandext>
+//                                                                        </gameshare>
+//                                                                        <appattach />
+//                                                                    </appmsg>
+//                                                                    <fromusername>${WeApi.selfWxId}</fromusername>
+//                                                                    <scene>0</scene>
+//                                                                    <appinfo>
+//                                                                        <version>1</version>
+//                                                                        <appname />
+//                                                                    </appinfo>
+//                                                                    <commenturl />
+//                                                                </msg>
+//                                                                """.trimIndent())
+//                                                                put("3", 1)
+//                                                                put("4", System.currentTimeMillis() / 1000)
+//                                                                put("5", -388413336)
+//                                                                put(
+//                                                                    "6", """<msgsource><atuserlist><![CDATA[${contacts.joinToString(",")}]]></atuserlist><pua>1</pua><alnode><cf>5</cf><inlenlist>73</inlenlist></alnode><eggIncluded>1</eggIncluded></msgsource>"""
+//                                                                )
+//                                                            }
+//                                                        }
+//
+//                                                        WePacketHelper.sendCgi(
+//                                                            "/cgi-bin/micromsg-bin/newsendmsg",
+//                                                            522,
+//                                                            0,
+//                                                            0,
+//                                                            reqBody.toString()
+//                                                        ) {
+//                                                            onSuccess { _ ->
+//                                                                showToast("已发送 (自己无法看到该消息)")
+//                                                            }
+//                                                        }
+//                                                    }
+//                                                )
+//                                            }
+//                                        }
                                     }
                                 })
                         }

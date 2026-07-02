@@ -9,10 +9,10 @@ abstract class ClickableFeature : SwitchFeature() {
     override fun startup() {
         if (!TargetProcesses.isInMain) return
         _isEnabled = WePrefs.getBoolOrFalse(name)
-        if (_isEnabled || alwaysRun) enable()
+        if (_isEnabled || alwaysEnabled) enable()
     }
 
-    open val alwaysRun: Boolean = false
+    open val alwaysEnabled: Boolean = false
 
     open val noSwitchWidget = false
 

@@ -1,8 +1,6 @@
 package dev.ujhhgtg.wekit.features.items.chat
 
 import android.app.Activity
-import android.os.Handler
-import android.os.Looper
 import dev.ujhhgtg.comptime.This
 import dev.ujhhgtg.wekit.features.api.core.WeDatabaseApi
 import dev.ujhhgtg.wekit.features.api.ui.WeContactPrefsScreenApi
@@ -22,7 +20,7 @@ import kotlinx.coroutines.launch
 
 @Feature(
     name = "查看群成员邀请者",
-    categories = ["聊天"],
+    categories = ["联系人与群组"],
     description = "在群成员详情页面添加入口, 可查看该成员的进群邀请者"
 )
 object DisplayGroupMemberInviter : SwitchFeature(), IContactInfoProvider {
@@ -30,8 +28,6 @@ object DisplayGroupMemberInviter : SwitchFeature(), IContactInfoProvider {
     private val TAG = This.Class.simpleName
 
     private const val PREF_KEY = "member_inviter"
-
-    private val mainHandler by lazy { Handler(Looper.getMainLooper()) }
 
     override fun onEnable() {
         WeContactPrefsScreenApi.addProvider(this)

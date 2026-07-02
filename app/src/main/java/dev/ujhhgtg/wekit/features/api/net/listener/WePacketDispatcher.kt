@@ -49,12 +49,12 @@ object WePacketDispatcher : ApiFeature(), IResolveDex {
 
                     // 有时 getUri 返回 null
                     val v0Ref = v0Var.reflekt()
-                    val uri = v0Ref.invokeMethod("getUri") as? String? ?: "null"
-                    val cgiId = v0Ref.invokeMethod("getType") as Int
+                    val uri = v0Ref.invokeMethod("getUri", superclass = true) as? String? ?: "null"
+                    val cgiId = v0Ref.invokeMethod("getType", superclass = true) as Int
                     try {
-                        val reqWrapper = v0Ref.invokeMethod("getReqObj")!!
-                        val reqPbObj = reqWrapper.reflekt().getField("a")!!
-                        val reqBytes = reqPbObj.reflekt().invokeMethod("toByteArray")!! as ByteArray
+                        val reqWrapper = v0Ref.invokeMethod("getReqObj", superclass = true)!!
+                        val reqPbObj = reqWrapper.reflekt().getField("a", superclass = true)!!
+                        val reqBytes = reqPbObj.reflekt().invokeMethod("toByteArray", superclass = true)!! as ByteArray
 
                         // 构造唯一标识符
                         val key =
@@ -84,7 +84,12 @@ object WePacketDispatcher : ApiFeature(), IResolveDex {
                             reqPbObj.reflekt().invokeMethod("parseFrom", tampered)
                             WeLogger.i(TAG, "tampered request: $uri")
                         }
-                    } catch (_: Throwable) {
+                    }
+                    catch (_: NoSuchElementException) {
+                        // ignored; toByteArray might not exist since a might be Integer
+                    }
+                    catch (e: Exception) {
+                        WeLogger.e(TAG, "failed to tamper request", e)
                     }
 
                     if (Proxy.isProxyClass(originalCallback.javaClass)) return@hookBefore
@@ -111,7 +116,7 @@ object WePacketDispatcher : ApiFeature(), IResolveDex {
                                                 cgiId,
                                                 originalRespBytes
                                             )?.let { tampered ->
-                                                respV0Ref.invokeMethod("setWXPRespData", tampered)
+                                                respV0Ref.invokeMethod("setWXPRespData", tampered, superclass = true)
                                                 WeLogger.i(
                                                     TAG,
                                                     "tampered response (WXP): $uri"
@@ -122,12 +127,12 @@ object WePacketDispatcher : ApiFeature(), IResolveDex {
                                     // 处理标准混淆的 ICommReqResp 实现
                                     else {
                                         val respWrapper = runCatching {
-                                            respV0Ref.getField("b")
-                                        }.getOrElse { respV0Ref.invokeMethod("getRespObj") }
+                                            respV0Ref.getField("b", superclass = true)
+                                        }.getOrElse { respV0Ref.invokeMethod("getRespObj", superclass = true) }
 
                                         if (respWrapper != null) {
                                             val respPbObj = runCatching {
-                                                respWrapper.reflekt().getField("a")
+                                                respWrapper.reflekt().getField("a", superclass = true)
                                             }.getOrNull()
 
 
@@ -136,7 +141,7 @@ object WePacketDispatcher : ApiFeature(), IResolveDex {
 
                                                 runCatching {
                                                     val originalRespBytes = respPbObjRef
-                                                        .invokeMethod("toByteArray")!! as ByteArray
+                                                        .invokeMethod("toByteArray", superclass = true)!! as ByteArray
                                                     WePacketManager.handleResponseTamper(
                                                         uri,
                                                         cgiId,

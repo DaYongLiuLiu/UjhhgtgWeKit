@@ -1,6 +1,7 @@
 package dev.ujhhgtg.wekit.ui.content
 
 import android.icu.text.Transliterator
+import android.os.Build
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -89,6 +90,7 @@ fun BaseContactSelector(
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
     filteredContacts: List<IWeContact>,
+    allContacts: List<IWeContact> = filteredContacts,
     confirmButtonText: String,
     confirmButtonEnabled: Boolean,
     onDismiss: () -> Unit,
@@ -113,7 +115,11 @@ fun BaseContactSelector(
 
     val transliterator = remember {
         try {
-            Transliterator.getInstance("Han-Latin; Any-Latin; Latin-ASCII")
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                Transliterator.getInstance("Han-Latin; Any-Latin; Latin-ASCII")
+            } else {
+                null
+            }
         } catch (_: Exception) {
             null
         }
@@ -219,9 +225,36 @@ fun BaseContactSelector(
         )
     }
 
-    val availableTypes = remember(typeCounts) {
+    // Row visibility is decided from the full contact list so that filter rows do not
+    // disappear while a search query is active (the filters still apply, hiding them is confusing).
+    val allTypeCounts = remember(allContacts, friendWxIds, groupWxIds, officialAccountWxIds) {
+        var friends = 0
+        var groups = 0
+        var officialAccounts = 0
+        var others = 0
+        for (contact in allContacts) {
+            val isGroup = contact is WeGroup || contact.wxId.endsWith("@chatroom") || contact.wxId in groupWxIds
+            val isOfficial = contact is WeOfficialAccount || contact.wxId.startsWith("gh_") || contact.wxId in officialAccountWxIds
+            val isFriend = contact.wxId in friendWxIds || contact is WeContact && !isGroup && !isOfficial && contact.type and 1 != 0
+            when {
+                isGroup -> groups++
+                isOfficial -> officialAccounts++
+                isFriend -> friends++
+                else -> others++
+            }
+        }
+        mapOf(
+            FilterType.ALL to allContacts.size,
+            FilterType.FRIENDS to friends,
+            FilterType.GROUPS to groups,
+            FilterType.OFFICIAL_ACCOUNTS to officialAccounts,
+            FilterType.OTHERS to others
+        )
+    }
+
+    val availableTypes = remember(allTypeCounts) {
         FilterType.entries.filter { type ->
-            type == FilterType.ALL || typeCounts[type] ?: 0 > 0
+            type == FilterType.ALL || allTypeCounts[type] ?: 0 > 0
         }
     }
     val showTypeFilterRow = remember(availableTypes, isFiltersLoaded) { isFiltersLoaded && availableTypes.size > 2 }
@@ -232,9 +265,10 @@ fun BaseContactSelector(
             filteredContacts.count { it.wxId in wxIds }
         }
     }
-    val availableLabels = remember(allLabels, labelCounts) {
+    val availableLabels = remember(allContacts, allLabels, labelContactsMap) {
         allLabels.filter { label ->
-            labelCounts[label.labelName] ?: 0 > 0
+            val wxIds = labelContactsMap[label.labelName] ?: emptySet()
+            allContacts.any { it.wxId in wxIds }
         }
     }
     val showLabelFilterRow = remember(availableLabels, isFiltersLoaded) { isFiltersLoaded && availableLabels.isNotEmpty() }
@@ -669,6 +703,7 @@ fun SingleContactSelector(
         searchQuery = searchQuery,
         onSearchQueryChange = { searchQuery = it },
         filteredContacts = filteredContacts,
+        allContacts = contacts,
         confirmButtonText = "确定",
         confirmButtonEnabled = selectedWxId != null,
         onDismiss = onDismiss,
@@ -715,6 +750,7 @@ fun ContactsSelector(
         searchQuery = searchQuery,
         onSearchQueryChange = { searchQuery = it },
         filteredContacts = filteredContacts,
+        allContacts = contacts,
         confirmButtonText = "确定 (${selectedWxIds.size})",
         confirmButtonEnabled = true,
         onDismiss = onDismiss,

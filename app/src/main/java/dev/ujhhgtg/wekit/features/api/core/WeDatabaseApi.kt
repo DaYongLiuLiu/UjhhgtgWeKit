@@ -529,7 +529,7 @@ object WeDatabaseApi : ApiFeature(), IResolveDex {
         val roomResult = executeQuery(roomSql)
 
         if (roomResult.isEmpty()) {
-            WeLogger.w(TAG, "未找到群聊信息: $groupId")
+            WeLogger.w(TAG, "failed to get group info for $groupId")
             return emptyList()
         }
 

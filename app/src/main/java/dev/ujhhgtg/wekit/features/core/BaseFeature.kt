@@ -76,19 +76,19 @@ abstract class BaseFeature {
     }
 
     internal val unhooks = mutableListOf<XC_MethodHook.Unhook>()
-    internal inline fun registerUnhook(u: XC_MethodHook.Unhook) {
+    internal fun registerUnhook(u: XC_MethodHook.Unhook) {
         unhooks += u
     }
-    internal inline fun unhookAll() {
+    internal fun unhookAll() {
         unhooks.forEach { it.unhook() }
         unhooks.clear()
     }
 
     // --- hookBefore ---
 
-    internal inline fun Executable.hookBefore(
+    internal fun Executable.hookBefore(
         priority: Int = 50,
-        crossinline action: HookAction
+        action: HookAction
     ) = registerUnhook(XposedBridge.hookMethod(
         this,
         object :
@@ -100,40 +100,40 @@ abstract class BaseFeature {
     ))
 
     @JvmName("hookBefore2")
-    internal inline fun BaseReflectedMethod.hookBefore(
+    internal fun BaseReflectedMethod.hookBefore(
         priority: Int = 50,
-        crossinline action: HookAction
+        action: HookAction
     ) = self.hookBefore(priority, action)
 
     @JvmName("hookBefore3")
-    internal inline fun ReflectedConstructor<*>.hookBefore(
+    internal fun ReflectedConstructor<*>.hookBefore(
         priority: Int = 50,
-        crossinline action: HookAction
+        action: HookAction
     ) = this.self.hookBefore(priority, action)
 
-    internal inline fun Class<*>.hookBeforeOnCreate(
-        crossinline action: HookAction
+    internal fun Class<*>.hookBeforeOnCreate(
+        action: HookAction
     ) = this.reflekt().firstMethod { name = "onCreate" }.hookBefore(50, action)
 
-    internal inline fun Class<*>.hookAfterOnCreate(
-        crossinline action: HookAction
+    internal fun Class<*>.hookAfterOnCreate(
+        action: HookAction
     ) = this.reflekt().firstMethod { name = "onCreate" }.hookAfter(50, action)
 
-    internal inline fun KClass<*>.hookBeforeOnCreate(
-        crossinline action: HookAction
+    internal fun KClass<*>.hookBeforeOnCreate(
+        action: HookAction
     ) = this.reflekt().firstMethod { name = "onCreate" }.hookBefore(50, action)
 
-    internal inline fun KClass<*>.hookAfterOnCreate(
-        crossinline action: HookAction
+    internal fun KClass<*>.hookAfterOnCreate(
+        action: HookAction
     ) = this.reflekt().firstMethod { name = "onCreate" }.hookAfter(50, action)
 
     // --- end hookBefore ---
 
     // --- hookAfter ---
 
-    internal inline fun Executable.hookAfter(
+    internal fun Executable.hookAfter(
         priority: Int = 50,
-        crossinline action: HookAction
+        action: HookAction
     ) = registerUnhook(XposedBridge.hookMethod(
         this,
         object :
@@ -145,44 +145,44 @@ abstract class BaseFeature {
     ))
 
     @JvmName("hookAfter2")
-    internal inline fun BaseReflectedMethod.hookAfter(
+    internal fun BaseReflectedMethod.hookAfter(
         priority: Int = 50,
-        crossinline action: HookAction
+        action: HookAction
     ) = self.hookAfter(priority, action)
 
     @JvmName("hookAfter3")
-    internal inline fun ReflectedConstructor<*>.hookAfter(
+    internal fun ReflectedConstructor<*>.hookAfter(
         priority: Int = 50,
-        crossinline action: HookAction
+        action: HookAction
     ) = this.self.hookAfter(priority, action)
 
     // --- end hookAfter ---
 
     // --- dex delegate ---
 
-    internal inline fun DexMethodDelegate.hookBefore(
+    internal fun DexMethodDelegate.hookBefore(
         priority: Int = 50,
-        crossinline action: HookAction
+        action: HookAction
     ) = method.hookBefore(priority, action)
 
-    internal inline fun DexMethodDelegate.hookAfter(
+    internal fun DexMethodDelegate.hookAfter(
         priority: Int = 50,
-        crossinline action: HookAction
+        action: HookAction
     ) = method.hookAfter(priority, action)
 
-    internal inline fun DexConstructorDelegate.hookBefore(
+    internal fun DexConstructorDelegate.hookBefore(
         priority: Int = 50,
-        crossinline action: HookAction
+        action: HookAction
     ) = constructor.hookBefore(priority, action)
 
-    internal inline fun DexConstructorDelegate.hookAfter(
+    internal fun DexConstructorDelegate.hookAfter(
         priority: Int = 50,
-        crossinline action: HookAction
+        action: HookAction
     ) = constructor.hookAfter(priority, action)
 
     // --- end dex delegate ---
 
-    internal inline fun executeHookAction(param: XC_MethodHook.MethodHookParam, action: HookAction) {
+    internal fun executeHookAction(param: XC_MethodHook.MethodHookParam, action: HookAction) {
         runCatching {
             action(param)
         }.onFailure { e -> WeLogger.e("executeHookAction", "failed to execute hook of $name", e) }

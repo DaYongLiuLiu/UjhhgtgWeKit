@@ -22,6 +22,7 @@ import dev.ujhhgtg.wekit.features.api.core.WeDatabaseApi
 import dev.ujhhgtg.wekit.features.api.core.WeGroupApi
 import dev.ujhhgtg.wekit.features.api.core.WeMessageApi
 import dev.ujhhgtg.wekit.features.api.core.WePaymentApi
+import dev.ujhhgtg.wekit.features.api.core.WeServiceApi
 import dev.ujhhgtg.wekit.features.api.core.models.MessageInfo
 import dev.ujhhgtg.wekit.features.api.core.models.MessageType
 import dev.ujhhgtg.wekit.features.api.net.WeNetSceneApi
@@ -645,14 +646,25 @@ object JavaEngine {
                 }.getOrDefault(emptyList<Any>())
             })
 
-            // getGroupMemberList(groupId) → list of member wxid strings
-            // WAuxv original: returns list of member objects | WeKit: returns List<WeContact>; choose: return wxId strings for simpler scripting
+            // getGroupMemberList(groupId) → list of member object
             setMethod(BshMethod(
                 "getGroupMemberList", arrayOf(BString)
             ) {
                 val groupId = it[0] as String
                 return@BshMethod runCatchingBsh("getGroupMemberList") {
-                    WeDatabaseApi.getGroupMembers(groupId).map { m -> m.wxId }
+                    WeServiceApi.chatroomService.reflekt().firstMethod {
+                        parameters(BString)
+                        returnType = List::class
+                    }.invoke(groupId)
+                }.getOrDefault(emptyList<Any>())
+            })
+
+            setMethod(BshMethod(
+                "getGroupMemberCount", arrayOf(BString)
+            ) {
+                val groupId = it[0] as String
+                return@BshMethod runCatchingBsh("getGroupMemberCount") {
+                    WeDatabaseApi.getGroupMembers(groupId).size
                 }.getOrDefault(emptyList<Any>())
             })
 
