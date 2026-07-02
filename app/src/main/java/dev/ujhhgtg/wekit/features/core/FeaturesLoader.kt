@@ -7,16 +7,18 @@ import dev.ujhhgtg.wekit.dexkit.cache.DexCacheManager
 import dev.ujhhgtg.wekit.features.api.ui.WeSettingsInjector
 import dev.ujhhgtg.wekit.ui.content.DexResolver
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
-import dev.ujhhgtg.wekit.utils.HostInfo
 import dev.ujhhgtg.wekit.utils.TargetProcesses
 import dev.ujhhgtg.wekit.utils.WeLogger
+import dev.ujhhgtg.wekit.utils.android.getTopMostActivity
 import dev.ujhhgtg.wekit.utils.android.showToast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.measureTime
 
 object FeaturesLoader {
@@ -109,10 +111,24 @@ object FeaturesLoader {
         WeLogger.i(TAG, "launching background coroutine to repair ${brokenItems.size} items")
 
         CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
+            var activity = getTopMostActivity()
+            var waited = 0L
+            while (activity == null && waited < 30_000L) {
+                delay(1_000.milliseconds)
+                waited += 1_000
+                activity = getTopMostActivity()
+            }
+
+            if (activity == null) {
+                WeLogger.w(TAG, "no activity available for dex-repair dialog; skipping")
+                return@launch
+            }
+
+            val boundActivity = activity
             withContext(Dispatchers.Main) {
-                showComposeDialog(HostInfo.application, directlyDismissable = false) {
+                showComposeDialog(boundActivity, directlyDismissable = false) {
                     DexResolver(
-                        HostInfo.application,
+                        boundActivity,
                         brokenItems,
                         MainScope(),
                         onDismiss

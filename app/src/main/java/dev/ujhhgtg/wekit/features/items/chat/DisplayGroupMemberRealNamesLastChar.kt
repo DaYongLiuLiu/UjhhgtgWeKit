@@ -1,6 +1,7 @@
 package dev.ujhhgtg.wekit.features.items.chat
 
 import android.app.Activity
+import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.text.SpannableStringBuilder
@@ -8,6 +9,16 @@ import android.text.Spanned
 import android.text.style.ForegroundColorSpan
 import android.view.View
 import android.widget.TextView
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.core.graphics.toColorInt
 import androidx.core.view.isGone
 import de.robv.android.xposed.XC_MethodHook
 import dev.ujhhgtg.comptime.This
@@ -20,8 +31,14 @@ import dev.ujhhgtg.wekit.features.api.ui.WeContactPrefsScreenApi
 import dev.ujhhgtg.wekit.features.api.ui.WeContactPrefsScreenApi.IContactInfoProvider
 import dev.ujhhgtg.wekit.features.api.ui.WeContactPrefsScreenApi.PreferenceItem
 import dev.ujhhgtg.wekit.features.api.ui.WeCurrentConversationApi
+import dev.ujhhgtg.wekit.features.core.ClickableFeature
 import dev.ujhhgtg.wekit.features.core.Feature
-import dev.ujhhgtg.wekit.features.core.SwitchFeature
+import dev.ujhhgtg.wekit.preferences.WePrefs
+import dev.ujhhgtg.wekit.ui.content.AlertDialogContent
+import dev.ujhhgtg.wekit.ui.content.Button
+import dev.ujhhgtg.wekit.ui.content.DefaultColumn
+import dev.ujhhgtg.wekit.ui.content.TextButton
+import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.features.items.chat.DisplayGroupMemberRealNamesLastChar.actualFetchRealName
 import dev.ujhhgtg.wekit.features.items.chat.DisplayGroupMemberRealNamesLastChar.cacheFile
 import dev.ujhhgtg.wekit.utils.WeLogger
@@ -44,9 +61,39 @@ import kotlin.io.path.writeText
     categories = ["聊天"],
     description = "通过转账接口获取并显示群成员的实名尾字"
 )
-object DisplayGroupMemberRealNamesLastChar : SwitchFeature(), WeChatMessageViewApi.ICreateViewListener, IContactInfoProvider {
+object DisplayGroupMemberRealNamesLastChar : ClickableFeature(), WeChatMessageViewApi.ICreateViewListener, IContactInfoProvider {
 
     private val TAG = This.Class.simpleName
+
+    private const val DEFAULT_FG = "#FF9E9E9E"
+    private var annotationFg by WePrefs.prefOption("real_name_last_char_fg", DEFAULT_FG)
+
+    private fun parseColor(value: String, fallback: String): Int =
+        runCatching { value.toColorInt() }.getOrElse { fallback.toColorInt() }
+
+    override fun onClick(context: Context) {
+        showComposeDialog(context) {
+            var fg by remember { mutableStateOf(annotationFg) }
+
+            AlertDialogContent(
+                title = { Text("显示群成员实名尾字") },
+                text = {
+                    DefaultColumn(Modifier.verticalScroll(rememberScrollState())) {
+                        TextField(
+                            label = { Text("前景色 (ARGB)") },
+                            value = fg,
+                            onValueChange = { fg = it })
+                    }
+                },
+                dismissButton = { TextButton(onDismiss) { Text("取消") } },
+                confirmButton = {
+                    Button(onClick = {
+                        annotationFg = fg
+                        onDismiss()
+                    }) { Text("确定") }
+                })
+        }
+    }
 
     /**
      * Integer tag key stamped onto the username [TextView] so in-flight async fetches can
@@ -222,7 +269,7 @@ object DisplayGroupMemberRealNamesLastChar : SwitchFeature(), WeChatMessageViewA
         val annotEnd = sb.length
 
         sb.setSpan(
-            ForegroundColorSpan(0xFF9E9E9E.toInt()),
+            ForegroundColorSpan(parseColor(annotationFg, DEFAULT_FG)),
             annotStart, annotEnd,
             Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
         )

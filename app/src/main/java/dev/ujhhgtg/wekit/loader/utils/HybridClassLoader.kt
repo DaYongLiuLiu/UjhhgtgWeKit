@@ -1,8 +1,11 @@
 package dev.ujhhgtg.wekit.loader.utils
 
+import dev.ujhhgtg.comptime.This
 import dev.ujhhgtg.wekit.utils.reflection.ClassLoaders
 
 object HybridClassLoader : ClassLoader(ClassLoaders.BOOT) {
+
+    private val TAG = This.Class.simpleName
 
     private val bootClassLoader = ClassLoaders.BOOT
     lateinit var moduleParentClassLoader: ClassLoader
@@ -25,8 +28,9 @@ object HybridClassLoader : ClassLoader(ClassLoaders.BOOT) {
 
             try {
                 return hostClassLoader.loadClass(name)
-            } catch (_: ClassNotFoundException) {
             }
+            catch (_: UninitializedPropertyAccessException) { }
+            catch (_: ClassNotFoundException) { }
 //        }
 //        else {
 //            try {

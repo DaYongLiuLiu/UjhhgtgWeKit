@@ -7,17 +7,17 @@ use axum::{
 };
 use chrono::Utc;
 use libsql::{Builder, Connection};
-use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha256};
-use std::{collections::HashMap, net::SocketAddr, sync::Arc};
-use std::sync::{Mutex, OnceLock};
-use std::io::Write;
 use rustyline::completion::{Completer, Pair};
 use rustyline::highlight::Highlighter;
 use rustyline::hint::Hinter;
 use rustyline::validate::Validator;
-use rustyline::{Helper, ExternalPrinter};
+use rustyline::{ExternalPrinter, Helper};
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::borrow::Cow;
+use std::io::Write;
+use std::sync::{Mutex, OnceLock};
+use std::{collections::HashMap, net::SocketAddr, sync::Arc};
 use tracing::{error, info, warn};
 
 // 1x1 transparent PNG file bytes to serve as the tracking pixel
@@ -135,11 +135,12 @@ impl std::io::Write for ReplWriter {
 fn write_log(msg: &str) {
     if let Some(mutex) = PRINTER.get()
         && let Ok(mut opt) = mutex.lock()
-            && let Some(p) = opt.as_mut() {
-                let _ = p.print(msg.to_string());
-                return;
-            }
-    
+        && let Some(p) = opt.as_mut()
+    {
+        let _ = p.print(msg.to_string());
+        return;
+    }
+
     let mut stdout = std::io::stdout();
     let _ = write!(stdout, "{}", msg);
     let _ = stdout.flush();
@@ -159,13 +160,13 @@ impl Completer for ReplHelper {
         _ctx: &rustyline::Context<'_>,
     ) -> rustyline::Result<(usize, Vec<Pair>)> {
         let mut candidates = Vec::new();
-        
+
         let (start, word) = get_word_at_pos(line, pos);
-        
+
         if word.starts_with('/') {
             let commands = &[
-                "/sql ", "/exit", "/help", "/status", 
-                "/url ", "/tail ", "/query ", "/clear", "/open"
+                "/sql ", "/exit", "/help", "/status", "/url ", "/tail ", "/query ", "/clear",
+                "/open",
             ];
             for cmd in commands {
                 if cmd.starts_with(word) {
@@ -177,12 +178,35 @@ impl Completer for ReplHelper {
             }
         } else if line.trim_start().starts_with("/sql") {
             let sql_keywords = &[
-                "SELECT", "INSERT", "UPDATE", "DELETE", "FROM", "WHERE",
-                "LIMIT", "ORDER BY", "DESC", "INTO", "VALUES", "CREATE TABLE",
-                "IF NOT EXISTS", "AND", "OR", "JOIN", "ON", "GROUP BY", "COUNT", "DISTINCT",
-                "messages", "reads", "id", "wx_id", "content", "ip", "timestamp"
+                "SELECT",
+                "INSERT",
+                "UPDATE",
+                "DELETE",
+                "FROM",
+                "WHERE",
+                "LIMIT",
+                "ORDER BY",
+                "DESC",
+                "INTO",
+                "VALUES",
+                "CREATE TABLE",
+                "IF NOT EXISTS",
+                "AND",
+                "OR",
+                "JOIN",
+                "ON",
+                "GROUP BY",
+                "COUNT",
+                "DISTINCT",
+                "messages",
+                "reads",
+                "id",
+                "wx_id",
+                "content",
+                "ip",
+                "timestamp",
             ];
-            
+
             let word_lower = word.to_lowercase();
             for &keyword in sql_keywords {
                 if keyword.to_lowercase().starts_with(&word_lower) {
@@ -193,7 +217,7 @@ impl Completer for ReplHelper {
                 }
             }
         }
-        
+
         Ok((start, candidates))
     }
 }
@@ -214,28 +238,31 @@ impl Hinter for ReplHelper {
 impl Highlighter for ReplHelper {
     fn highlight<'l>(&self, line: &'l str, _pos: usize) -> Cow<'l, str> {
         let mut highlighted = line.to_string();
-        
+
         if highlighted.starts_with("/exit") {
             highlighted = highlighted.replace("/exit", "\x1b[1;31m/exit\x1b[0m");
         } else if highlighted.starts_with("/clear") {
             highlighted = highlighted.replace("/clear", "\x1b[1;31m/clear\x1b[0m");
         } else {
-            let other_cmds = &["/help", "/status", "/open", "/sql", "/url", "/tail", "/query"];
+            let other_cmds = &[
+                "/help", "/status", "/open", "/sql", "/url", "/tail", "/query",
+            ];
             for cmd in other_cmds {
                 if highlighted.starts_with(cmd) {
-                    highlighted = highlighted.replacen(cmd, &format!("\x1b[1;32m{}\x1b[0m", cmd), 1);
+                    highlighted =
+                        highlighted.replacen(cmd, &format!("\x1b[1;32m{}\x1b[0m", cmd), 1);
                     break;
                 }
             }
         }
-        
+
         if line.starts_with("/sql") && highlighted.len() > "\x1b[1;32m/sql\x1b[0m".len() {
             let prefix_len = "\x1b[1;32m/sql\x1b[0m".len();
             let (prefix, sql_part) = highlighted.split_at(prefix_len);
             let colored_sql = highlight_sql(sql_part);
             highlighted = format!("{}{}", prefix, colored_sql);
         }
-        
+
         Cow::Owned(highlighted)
     }
 }
@@ -246,7 +273,7 @@ fn highlight_sql(sql: &str) -> String {
     let mut result = String::new();
     let mut current_word = String::new();
     let mut in_string = false;
-    
+
     for c in sql.chars() {
         if c == '\'' {
             if !current_word.is_empty() {
@@ -261,12 +288,12 @@ fn highlight_sql(sql: &str) -> String {
             }
             continue;
         }
-        
+
         if in_string {
             result.push(c);
             continue;
         }
-        
+
         if c.is_alphanumeric() || c == '_' || c == '-' {
             current_word.push(c);
         } else {
@@ -277,39 +304,41 @@ fn highlight_sql(sql: &str) -> String {
             result.push(c);
         }
     }
-    
+
     if !current_word.is_empty() {
         result.push_str(&color_word(&current_word));
     }
-    
+
     result
 }
 
 fn color_word(word: &str) -> String {
     let word_upper = word.to_uppercase();
     match word_upper.as_str() {
-        "SELECT" | "INSERT" | "UPDATE" | "DELETE" | "FROM" | "WHERE" |
-        "LIMIT" | "ORDER" | "BY" | "DESC" | "INTO" | "VALUES" | "CREATE" |
-        "TABLE" | "IF" | "NOT" | "EXISTS" | "AND" | "OR" | "JOIN" | "ON" |
-        "GROUP" | "COUNT" | "DISTINCT" => {
+        "SELECT" | "INSERT" | "UPDATE" | "DELETE" | "FROM" | "WHERE" | "LIMIT" | "ORDER" | "BY"
+        | "DESC" | "INTO" | "VALUES" | "CREATE" | "TABLE" | "IF" | "NOT" | "EXISTS" | "AND"
+        | "OR" | "JOIN" | "ON" | "GROUP" | "COUNT" | "DISTINCT" => {
             format!("\x1b[1;36m{}\x1b[0m", word) // Bold Cyan
         }
         "messages" | "reads" => {
             format!("\x1b[1;35m{}\x1b[0m", word) // Bold Magenta
         }
-        "id" | "wx_id" | "content" | "ip" | "timestamp" |
-        "ID" | "WX_ID" | "CONTENT" | "IP" | "TIMESTAMP" => {
+        "id" | "wx_id" | "content" | "ip" | "timestamp" | "ID" | "WX_ID" | "CONTENT" | "IP"
+        | "TIMESTAMP" => {
             format!("\x1b[1;34m{}\x1b[0m", word) // Bold Blue
         }
         _ => word.to_string(),
     }
 }
 
-async fn handle_sql_command(conn: &libsql::Connection, sql: &str) -> Result<(), Box<dyn std::error::Error>> {
+async fn handle_sql_command(
+    conn: &libsql::Connection,
+    sql: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
     let is_query = {
         let sql_lower = sql.trim().to_lowercase();
-        sql_lower.starts_with("select") 
-            || sql_lower.starts_with("explain") 
+        sql_lower.starts_with("select")
+            || sql_lower.starts_with("explain")
             || sql_lower.starts_with("pragma")
             || sql_lower.starts_with("with")
     };
@@ -400,18 +429,39 @@ async fn handle_sql_command(conn: &libsql::Connection, sql: &str) -> Result<(), 
 fn handle_help_command() {
     println!("\x1b[1;36mAvailable commands:\x1b[0m");
     println!("  \x1b[1;32m/help\x1b[0m                       Show this help message");
-    println!("  \x1b[1;32m/status\x1b[0m                     Show server stats (messages, unique senders, reads, unique reader IPs)");
-    println!("  \x1b[1;32m/url <wxId> <message>\x1b[0m       Register a message & print its tracking URL + HTML tag");
-    println!("  \x1b[1;32m/tail [count]\x1b[0m               Show the latest [count] (default 10) read events in real-time");
-    println!("  \x1b[1;32m/query <wxId>\x1b[0m               Show all tracked messages for a sender with their read counts");
-    println!("  \x1b[1;32m/clear\x1b[0m                      Clear all tracked messages and reads from the database");
-    println!("  \x1b[1;32m/open\x1b[0m                       Open the web dashboard in your default browser");
-    println!("  \x1b[1;32m/sql <query>\x1b[0m                Execute arbitrary SQL queries on the database");
-    println!("  \x1b[1;32m/exit\x1b[0m                       Shutdown the server and exit the REPL");
+    println!(
+        "  \x1b[1;32m/status\x1b[0m                     Show server stats (messages, unique senders, reads, unique reader IPs)"
+    );
+    println!(
+        "  \x1b[1;32m/url <wxId> <message>\x1b[0m       Register a message & print its tracking URL + HTML tag"
+    );
+    println!(
+        "  \x1b[1;32m/tail [count]\x1b[0m               Show the latest [count] (default 10) read events in real-time"
+    );
+    println!(
+        "  \x1b[1;32m/query <wxId>\x1b[0m               Show all tracked messages for a sender with their read counts"
+    );
+    println!(
+        "  \x1b[1;32m/clear\x1b[0m                      Clear all tracked messages and reads from the database"
+    );
+    println!(
+        "  \x1b[1;32m/open\x1b[0m                       Open the web dashboard in your default browser"
+    );
+    println!(
+        "  \x1b[1;32m/sql <query>\x1b[0m                Execute arbitrary SQL queries on the database"
+    );
+    println!(
+        "  \x1b[1;32m/exit\x1b[0m                       Shutdown the server and exit the REPL"
+    );
 }
 
-async fn handle_status_command(conn: &libsql::Connection) -> Result<(), Box<dyn std::error::Error>> {
-    async fn scalar(conn: &libsql::Connection, sql: &str) -> Result<i64, Box<dyn std::error::Error>> {
+async fn handle_status_command(
+    conn: &libsql::Connection,
+) -> Result<(), Box<dyn std::error::Error>> {
+    async fn scalar(
+        conn: &libsql::Connection,
+        sql: &str,
+    ) -> Result<i64, Box<dyn std::error::Error>> {
         let mut rows = conn.query(sql, ()).await?;
         Ok(match rows.next().await? {
             Some(row) => match row.get_value(0)? {
@@ -427,7 +477,12 @@ async fn handle_status_command(conn: &libsql::Connection) -> Result<(), Box<dyn 
     let total_reads = scalar(conn, "SELECT COUNT(*) FROM reads").await?;
     let unique_reader_ips = scalar(conn, "SELECT COUNT(DISTINCT ip) FROM reads").await?;
 
-    let mut latest_rows = conn.query("SELECT timestamp FROM reads ORDER BY timestamp DESC LIMIT 1", ()).await?;
+    let mut latest_rows = conn
+        .query(
+            "SELECT timestamp FROM reads ORDER BY timestamp DESC LIMIT 1",
+            (),
+        )
+        .await?;
     let latest_read = match latest_rows.next().await? {
         Some(row) => match row.get_value(0)? {
             libsql::Value::Text(s) => s.clone(),
@@ -441,13 +496,19 @@ async fn handle_status_command(conn: &libsql::Connection) -> Result<(), Box<dyn 
     println!("Tracked messages:      \x1b[1;33m{}\x1b[0m", total_messages);
     println!("Unique senders:        \x1b[1;33m{}\x1b[0m", unique_senders);
     println!("Total reads:           \x1b[1;33m{}\x1b[0m", total_reads);
-    println!("Unique reader IPs:     \x1b[1;33m{}\x1b[0m", unique_reader_ips);
+    println!(
+        "Unique reader IPs:     \x1b[1;33m{}\x1b[0m",
+        unique_reader_ips
+    );
     println!("Latest read time:      \x1b[1;33m{}\x1b[0m", latest_read);
 
     Ok(())
 }
 
-async fn handle_url_command(conn: &libsql::Connection, args: &str) -> Result<(), Box<dyn std::error::Error>> {
+async fn handle_url_command(
+    conn: &libsql::Connection,
+    args: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
     let parts: Vec<&str> = args.splitn(2, char::is_whitespace).collect();
     if parts.len() < 2 || parts[0].is_empty() || parts[1].trim().is_empty() {
         println!("Usage: /url <wxId> <message>");
@@ -474,19 +535,27 @@ async fn handle_url_command(conn: &libsql::Connection, args: &str) -> Result<(),
     println!("wxId:     \x1b[1;34m{}\x1b[0m", wx_id);
     println!("id:       \x1b[1;35m{}\x1b[0m", id);
     println!("URL:      \x1b[4;32m{}\x1b[0m", url);
-    println!("HTML Tag: \x1b[33m<img src=\"{}\" width=\"1\" height=\"1\" style=\"display:none;\" />\x1b[0m", url);
+    println!(
+        "HTML Tag: \x1b[33m<img src=\"{}\" width=\"1\" height=\"1\" style=\"display:none;\" />\x1b[0m",
+        url
+    );
     Ok(())
 }
 
-async fn handle_tail_command(conn: &libsql::Connection, args: &str) -> Result<(), Box<dyn std::error::Error>> {
+async fn handle_tail_command(
+    conn: &libsql::Connection,
+    args: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
     let count: i64 = args.trim().parse().unwrap_or(10);
 
-    let mut rows = conn.query(
-        "SELECT r.timestamp, r.ip, r.wx_id, COALESCE(m.content, '') \
+    let mut rows = conn
+        .query(
+            "SELECT r.timestamp, r.ip, r.wx_id, COALESCE(m.content, '') \
          FROM reads r LEFT JOIN messages m ON r.id = m.id \
          ORDER BY r.timestamp DESC LIMIT ?1",
-        libsql::params![count]
-    ).await?;
+            libsql::params![count],
+        )
+        .await?;
 
     println!("\x1b[1;36m--- Latest {} Reads ---\x1b[0m", count);
     let mut found = 0;
@@ -522,7 +591,10 @@ async fn handle_tail_command(conn: &libsql::Connection, args: &str) -> Result<()
     Ok(())
 }
 
-async fn handle_query_command(conn: &libsql::Connection, wx_id: &str) -> Result<(), Box<dyn std::error::Error>> {
+async fn handle_query_command(
+    conn: &libsql::Connection,
+    wx_id: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
     if wx_id.trim().is_empty() {
         println!("Usage: /query <wxId>");
         return Ok(());
@@ -539,14 +611,17 @@ async fn handle_query_command(conn: &libsql::Connection, wx_id: &str) -> Result<
 async fn handle_clear_command(conn: &libsql::Connection) -> Result<(), Box<dyn std::error::Error>> {
     print!("Are you sure you want to clear all records? (y/N): ");
     let _ = std::io::stdout().flush();
-    
+
     let mut response = String::new();
     if std::io::stdin().read_line(&mut response).is_ok() {
         let trimmed = response.trim().to_lowercase();
         if trimmed == "y" || trimmed == "yes" {
             conn.execute("DELETE FROM reads", ()).await?;
             let rows_affected = conn.execute("DELETE FROM messages", ()).await?;
-            println!("Database wiped successfully! Wiped \x1b[1;31m{}\x1b[0m messages (and all their reads).", rows_affected);
+            println!(
+                "Database wiped successfully! Wiped \x1b[1;31m{}\x1b[0m messages (and all their reads).",
+                rows_affected
+            );
         } else {
             println!("Clear cancelled.");
         }
@@ -562,10 +637,15 @@ fn handle_open_command() {
     #[cfg(target_os = "macos")]
     let _ = std::process::Command::new("open").arg(&url).spawn();
     #[cfg(target_os = "windows")]
-    let _ = std::process::Command::new("cmd").args(["/C", "start", &url]).spawn();
+    let _ = std::process::Command::new("cmd")
+        .args(["/C", "start", &url])
+        .spawn();
 }
 
-async fn route_command(trimmed: &str, repl_conn: &libsql::Connection) -> Result<bool, Box<dyn std::error::Error>> {
+async fn route_command(
+    trimmed: &str,
+    repl_conn: &libsql::Connection,
+) -> Result<bool, Box<dyn std::error::Error>> {
     if trimmed == "/exit" {
         return Ok(true);
     } else if trimmed == "/help" {
@@ -678,7 +758,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/pixel", get(serve_tracking_pixel))
         .route("/count", get(read_count))
         .route("/messages", get(list_messages).delete(delete_all_messages))
-        .route("/messages/{wx_id}", get(list_messages_for_sender).delete(delete_messages_for_sender))
+        .route(
+            "/messages/{wx_id}",
+            get(list_messages_for_sender).delete(delete_messages_for_sender),
+        )
         .route("/reads/{id}", get(list_reads_for_message))
         .with_state(Arc::new(AppState { db: conn }));
 
@@ -727,7 +810,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         if trimmed.is_empty() {
                             continue;
                         }
-                        
+
                         let _ = rl.add_history_entry(line.as_str());
 
                         if route_command(trimmed, &repl_conn).await? {
@@ -740,7 +823,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     Err(rustyline::error::ReadlineError::Eof) => {
                         break;
                     }
-                    Err(rustyline::error::ReadlineError::Io(ref e)) if e.raw_os_error() == Some(25) => {
+                    Err(rustyline::error::ReadlineError::Io(ref e))
+                        if e.raw_os_error() == Some(25) =>
+                    {
                         run_fallback = true;
                         break;
                     }
@@ -762,7 +847,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         // until the process receives a shutdown signal.
         #[cfg(unix)]
         {
-            use tokio::signal::unix::{signal, SignalKind};
+            use tokio::signal::unix::{SignalKind, signal};
             let mut sigterm = signal(SignalKind::terminate())?;
             let mut sigint = signal(SignalKind::interrupt())?;
             tokio::select! {
@@ -801,7 +886,10 @@ async fn register_message(
     Json(req): Json<RegisterRequest>,
 ) -> Result<Json<RegisterResponse>, (StatusCode, String)> {
     if req.wx_id.is_empty() {
-        return Err((StatusCode::BAD_REQUEST, "wxId must not be empty".to_string()));
+        return Err((
+            StatusCode::BAD_REQUEST,
+            "wxId must not be empty".to_string(),
+        ));
     }
 
     let id = compute_msg_id(&req.wx_id, &req.content, req.create_time);
@@ -820,7 +908,12 @@ async fn register_message(
             libsql::params![id.as_str(), req.wx_id.as_str(), req.content.as_str(), now],
         )
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("register failed: {e}")))?;
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("register failed: {e}"),
+            )
+        })?;
 
     Ok(Json(RegisterResponse { id }))
 }
@@ -873,7 +966,12 @@ async fn read_count(
 ) -> Result<Json<CountResponse>, (StatusCode, String)> {
     let (wx_id, id) = match (params.wx_id, params.id) {
         (Some(w), Some(i)) => (w, i),
-        _ => return Err((StatusCode::BAD_REQUEST, "wxId and id are required".to_string())),
+        _ => {
+            return Err((
+                StatusCode::BAD_REQUEST,
+                "wxId and id are required".to_string(),
+            ));
+        }
     };
 
     let mut rows = state
@@ -883,10 +981,18 @@ async fn read_count(
             libsql::params![id, wx_id],
         )
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("query failed: {e}")))?;
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("query failed: {e}"),
+            )
+        })?;
 
     let count = match rows.next().await.map_err(|e| {
-        (StatusCode::INTERNAL_SERVER_ERROR, format!("row read failed: {e}"))
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("row read failed: {e}"),
+        )
     })? {
         Some(row) => match row.get_value(0) {
             Ok(libsql::Value::Integer(n)) => n,
@@ -927,7 +1033,12 @@ async fn list_messages(
             )
             .await
     }
-    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("query failed: {e}")))?;
+    .map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("query failed: {e}"),
+        )
+    })?;
 
     collect_messages(&mut rows).await
 }
@@ -973,7 +1084,10 @@ async fn collect_messages(
 ) -> Result<Json<Vec<MessageRecord>>, (StatusCode, String)> {
     let mut messages = Vec::new();
     while let Some(row) = rows.next().await.map_err(|e| {
-        (StatusCode::INTERNAL_SERVER_ERROR, format!("row read failed: {e}"))
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("row read failed: {e}"),
+        )
     })? {
         messages.push(MessageRecord {
             id: row.get_str(0).unwrap_or_default().to_string(),
@@ -1002,11 +1116,19 @@ async fn list_reads_for_message(
             libsql::params![id],
         )
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("query failed: {e}")))?;
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("query failed: {e}"),
+            )
+        })?;
 
     let mut reads = Vec::new();
     while let Some(row) = rows.next().await.map_err(|e| {
-        (StatusCode::INTERNAL_SERVER_ERROR, format!("row read failed: {e}"))
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("row read failed: {e}"),
+        )
     })? {
         reads.push(ReadRecord {
             ip: row.get_str(0).unwrap_or_default().to_string(),
@@ -1025,12 +1147,22 @@ async fn delete_all_messages(
         .db
         .execute("DELETE FROM reads", ())
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("delete failed: {e}")))?;
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("delete failed: {e}"),
+            )
+        })?;
     state
         .db
         .execute("DELETE FROM messages", ())
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("delete failed: {e}")))?;
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("delete failed: {e}"),
+            )
+        })?;
 
     Ok(Json(serde_json::json!({"status": "ok"})))
 }
@@ -1047,12 +1179,25 @@ async fn delete_messages_for_sender(
             libsql::params![wx_id.clone()],
         )
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("delete failed: {e}")))?;
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("delete failed: {e}"),
+            )
+        })?;
     state
         .db
-        .execute("DELETE FROM messages WHERE wx_id = ?1", libsql::params![wx_id])
+        .execute(
+            "DELETE FROM messages WHERE wx_id = ?1",
+            libsql::params![wx_id],
+        )
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("delete failed: {e}")))?;
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("delete failed: {e}"),
+            )
+        })?;
 
     Ok(Json(serde_json::json!({"status": "ok"})))
 }

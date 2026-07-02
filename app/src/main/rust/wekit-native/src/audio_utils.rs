@@ -354,7 +354,8 @@ pub fn pcm_to_mp3(
 
     let input = MonoPcm(&samples);
 
-    let mut mp3_buffer = Vec::with_capacity(mp3lame_encoder::max_required_buffer_size(samples.len()));
+    let mut mp3_buffer =
+        Vec::with_capacity(mp3lame_encoder::max_required_buffer_size(samples.len()));
 
     // Encode
     let encoded = match encoder.encode(input, mp3_buffer.spare_capacity_mut()) {

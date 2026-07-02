@@ -161,6 +161,21 @@ object AggregateChats : ClickableFeature(),
         }
     }
 
+    // com.tencent.mm.storage.m4 (ConversationStorage)#b0(username) — "updateUnreadByTalker".
+    // The folder container (ConvBoxServiceConversationUI) sets its superUsername to our folder id
+    // (via the Contact_User extra we inject). WeChat's ConvBoxServiceConversationFmUI.onPause()
+    // then calls b0(superUsername), which zeroes unReadCount / unReadMuteCount and clears the mute
+    // attrflag bit on that exact row — wiping our folder's badge just for opening and leaving the
+    // folder without touching any member. We no-op it for folder ids so the aggregate row keeps
+    // reflecting its members' (still-unread) state.
+    private val methodConversationStorageUpdateUnreadByTalker by dexMethod(allowFailure = true) {
+        matcher {
+            usingStrings("MicroMsg.ConversationStorage", "updateUnreadByTalker %s", "update conversation failed")
+            paramTypes("java.lang.String")
+            returnType("boolean")
+        }
+    }
+
     // com.tencent.mm.ui.widget.menu.MMPopupMenu#showMenu(view, pos, id, onCreateListener, selectCb, x, y)
     // The shared long-press popup used by both the homepage list and the folder container. We hook
     // it (gated on activeFolderId) to inject a "remove from folder" item only inside our folders.
@@ -222,6 +237,7 @@ object AggregateChats : ClickableFeature(),
         hookMvvmContactListItemClick()
         hookSqliteWrapperQuery()
         hookConversationStorageParentQuery()
+        hookConversationStorageUpdateUnread()
 
         CustomLocalFriendAvatars.fallbackUsernameProvider = { folderId ->
             if (isFolderId(folderId) && !CustomLocalFriendAvatars.avatarMap.containsKey(folderId)) {
@@ -711,8 +727,7 @@ object AggregateChats : ClickableFeature(),
         }
     }
 
-    private fun hookConversationStorageParentQuery() {
-        if (methodConversationStorageQueryByParent.isPlaceholder) return
+    private fun hookConversationStorageParentQuery() {        if (methodConversationStorageQueryByParent.isPlaceholder) return
         methodConversationStorageQueryByParent.hookBefore {
             val folderId = activeFolderId ?: return@hookBefore
             val parentRef = args.getOrNull(2) as? String ?: return@hookBefore
@@ -721,6 +736,17 @@ object AggregateChats : ClickableFeature(),
             ) {
                 args[2] = folderId
             }
+        }
+    }
+
+    // See methodConversationStorageUpdateUnreadByTalker: cancel the "mark box read on leave" that
+    // WeChat's folder container fires against our folder id, so exiting a folder without opening any
+    // member never clears the aggregate row's unread badge.
+    private fun hookConversationStorageUpdateUnread() {
+        if (methodConversationStorageUpdateUnreadByTalker.isPlaceholder) return
+        methodConversationStorageUpdateUnreadByTalker.hookBefore {
+            val username = args.firstOrNull() as? String ?: return@hookBefore
+            if (isFolderId(username)) result = true
         }
     }
 

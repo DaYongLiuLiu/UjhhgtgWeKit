@@ -10,7 +10,6 @@ import dev.ujhhgtg.wekit.loader.abc.ILoaderService
 import dev.ujhhgtg.wekit.loader.utils.HybridClassLoader
 import dev.ujhhgtg.wekit.loader.utils.NativeLoader
 import dev.ujhhgtg.wekit.utils.HostInfo
-import dev.ujhhgtg.wekit.utils.SignatureVerifier
 import dev.ujhhgtg.wekit.utils.WeLogger
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 import java.io.File
@@ -29,12 +28,12 @@ object StartupAgent {
         loaderService: ILoaderService,
         hookBridge: IHookBridge?,
         modulePath: String,
-        application: Application,
-        realClassLoader: ClassLoader
+        application: Application
     ) {
         if (initialized) return
         initialized = true
 
+        val realClassLoader = application.baseContext.classLoader
         HybridClassLoader.hostClassLoader = realClassLoader
         ReflectionClassLoader.value = realClassLoader
         StartupInfo.loaderService = loaderService
@@ -45,7 +44,8 @@ object StartupAgent {
 
         HostInfo.init(application)
         NativeLoader.init(application)
-        SignatureVerifier.verify(application)
+        // FIXME: some people have hiding on, which causes false positives in signature verifier
+//        SignatureVerifier.verify(application)
         WeLauncher.init(application)
 
         runCatching {

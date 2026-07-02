@@ -13,7 +13,8 @@ use sha2::{Digest, Sha256};
 use crate::{loge, logi, logw};
 
 /// SHA-256 of the expected signing certificate (DER encoded).
-const EXPECTED_CERT_SHA256: &str = "6bc3be50d46327b8c66b564ff946a9c51bbb72a198fc7cd651e9726901584315";
+const EXPECTED_CERT_SHA256: &str =
+    "6bc3be50d46327b8c66b564ff946a9c51bbb72a198fc7cd651e9726901584315";
 
 /// `PackageManager.GET_SIGNING_CERTIFICATES`
 const GET_SIGNING_CERTIFICATES: jint = 0x0800_0000;
@@ -33,9 +34,7 @@ pub fn verify(env: &mut Env, context: &JObject, package_name: &str) -> bool {
             logw!("PackageManager verification mismatch, trying APK path fallback");
         }
         Err(e) => {
-            logw!(
-                "PackageManager verification failed ({e:?}), trying APK path fallback"
-            );
+            logw!("PackageManager verification failed ({e:?}), trying APK path fallback");
             // A failed JNI call may leave a pending Java exception (e.g.
             // NameNotFoundException). Clear it so the fallback's own JNI
             // calls are not disturbed.
@@ -184,21 +183,13 @@ fn verify_via_apk_path(
     let result = extract_and_verify_from_zip(env, &zip_file);
 
     // zip.close() regardless of outcome
-    let _ = env.call_method(
-        &zip_file,
-        jni::jni_str!("close"),
-        jni::jni_sig!("()V"),
-        &[],
-    );
+    let _ = env.call_method(&zip_file, jni::jni_str!("close"), jni::jni_sig!("()V"), &[]);
 
     result
 }
 
 /// Iterate the ZIP entries, find the signature block, parse the cert and verify.
-fn extract_and_verify_from_zip(
-    env: &mut Env,
-    zip_file: &JObject,
-) -> jni::errors::Result<bool> {
+fn extract_and_verify_from_zip(env: &mut Env, zip_file: &JObject) -> jni::errors::Result<bool> {
     // Enumeration<? extends ZipEntry> entries = zip.entries()
     let entries = env
         .call_method(
@@ -263,9 +254,7 @@ fn extract_and_verify_from_zip(
             .call_static_method(
                 jni::jni_str!("java/security/cert/CertificateFactory"),
                 jni::jni_str!("getInstance"),
-                jni::jni_sig!(
-                    "(Ljava/lang/String;)Ljava/security/cert/CertificateFactory;"
-                ),
+                jni::jni_sig!("(Ljava/lang/String;)Ljava/security/cert/CertificateFactory;"),
                 &[JValue::Object(&x509)],
             )?
             .l()?;
@@ -275,9 +264,7 @@ fn extract_and_verify_from_zip(
             .call_method(
                 &cert_factory,
                 jni::jni_str!("generateCertificate"),
-                jni::jni_sig!(
-                    "(Ljava/io/InputStream;)Ljava/security/cert/Certificate;"
-                ),
+                jni::jni_sig!("(Ljava/io/InputStream;)Ljava/security/cert/Certificate;"),
                 &[JValue::Object(&input_stream)],
             )?
             .l()?;

@@ -3,7 +3,7 @@ package dev.ujhhgtg.wekit.loader.utils
 import android.content.Context
 import com.tencent.mmkv.MMKV
 import dev.ujhhgtg.wekit.preferences.WePrefs
-import kotlin.io.path.createDirectories
+import dev.ujhhgtg.wekit.utils.fs.createDirsSafe
 import kotlin.io.path.div
 import kotlin.io.path.exists
 
@@ -17,7 +17,7 @@ object NativeLoader {
     fun init(hostCtx: Context) {
         val mmkvDir = hostCtx.filesDir.toPath() / "mmkv"
         if (!mmkvDir.exists()) {
-            mmkvDir.createDirectories()
+            mmkvDir.createDirsSafe()
         }
 
         MMKV.initialize(hostCtx, mmkvDir.toString())
