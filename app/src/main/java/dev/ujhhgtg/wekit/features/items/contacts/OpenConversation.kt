@@ -1,6 +1,6 @@
 package dev.ujhhgtg.wekit.features.items.contacts
 
-import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.getValue
@@ -21,7 +21,7 @@ object OpenConversation : ClickableFeature() {
 
     override val noSwitchWidget = true
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             var wxId by remember { mutableStateOf("") }
             AlertDialogContent(

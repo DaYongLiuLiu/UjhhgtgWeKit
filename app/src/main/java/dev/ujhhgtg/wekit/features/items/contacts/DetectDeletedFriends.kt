@@ -1,6 +1,6 @@
 package dev.ujhhgtg.wekit.features.items.contacts
 
-import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
@@ -75,21 +75,25 @@ object DetectDeletedFriends : ClickableFeature() {
             val total: Int,
             val abnormalFriends: MutableList<AbnormalFriend> = mutableListOf()
         ) : DialogPhase()
+
         data class Done(val friends: List<AbnormalFriend>) : DialogPhase()
         data class SelectLabel(
             val friends: List<AbnormalFriend>,
             val suggestedLabelName: String
         ) : DialogPhase()
+
         data class Marking(
             val friends: List<AbnormalFriend>,
             val labelName: String,
             val completed: MutableIntState,
             val total: Int
         ) : DialogPhase()
+
         data class ConfirmDelete(
             val allFriends: List<AbnormalFriend>,
             val targets: List<AbnormalFriend>
         ) : DialogPhase()
+
         data class Deleting(
             val allFriends: List<AbnormalFriend>,
             val targets: List<AbnormalFriend>,
@@ -99,7 +103,7 @@ object DetectDeletedFriends : ClickableFeature() {
         ) : DialogPhase()
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         val friends = WeDatabaseApi.getFriends().filter { c ->
             c.type != 2051 && c.type != 2049 && c.wxId != WeApi.selfWxId
         }
@@ -296,7 +300,7 @@ object DetectDeletedFriends : ClickableFeature() {
                             val confirmPhase = phase as DialogPhase.ConfirmDelete
                             Text(
                                 "确定要删除选中的 ${confirmPhase.targets.size} 个好友吗?\n" +
-                                    "此操作不可逆, 删除后聊天记录将被清除, 需对方重新添加."
+                                        "此操作不可逆, 删除后聊天记录将被清除, 需对方重新添加."
                             )
                         }
 

@@ -2,6 +2,7 @@ package dev.ujhhgtg.wekit.features.items.payment
 
 import android.app.Activity
 import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -47,7 +48,11 @@ import kotlin.concurrent.thread
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration.Companion.milliseconds
 
-@Feature(name = "捡漏历史红包", categories = ["红包与支付"], description = "在联系人与群组详情页面添加选项, 批量扫描当前对话的所有历史红包消息并尝试领取\n点击可查看当前正在进行的任务")
+@Feature(
+    name = "捡漏历史红包",
+    categories = ["红包与支付"],
+    description = "在联系人与群组详情页面添加选项, 批量扫描当前对话的所有历史红包消息并尝试领取\n点击可查看当前正在进行的任务"
+)
 object OpenHistoryRedPackets : ClickableFeature(), WeContactPrefsScreenApi.IContactInfoProvider, IResolveDex {
 
     private val TAG = This.Class.simpleName
@@ -153,6 +158,7 @@ object OpenHistoryRedPackets : ClickableFeature(), WeContactPrefsScreenApi.ICont
                     val displayAmount = amount / 100.0
                     updateLog("红包 [${info.nickName}] 领取成功: ¥$displayAmount")
                 }
+
                 3 -> updateLog("红包 [${info.nickName}] 领取完毕: 已过期")
                 4 -> updateLog("红包 [${info.nickName}] 领取完毕: 已被领完")
                 else -> updateLog("红包 [${info.nickName}] 状态未知 (status=$receiveStatus)")
@@ -195,7 +201,7 @@ object OpenHistoryRedPackets : ClickableFeature(), WeContactPrefsScreenApi.ICont
         return true
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         if (isRunning) {
             showProgressDialog(context)
         } else {

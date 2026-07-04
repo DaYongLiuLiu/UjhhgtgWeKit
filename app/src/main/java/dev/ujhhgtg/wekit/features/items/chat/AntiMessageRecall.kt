@@ -1,6 +1,6 @@
 package dev.ujhhgtg.wekit.features.items.chat
 
-import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.ListItem
@@ -114,7 +114,7 @@ object AntiMessageRecall : ClickableFeature(), WeXmlParserApi.IAfterParseListene
         }
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             var recallOutgoingInput by remember { mutableStateOf(recallOutgoing) }
             var patternInput by remember { mutableStateOf(pattern) }

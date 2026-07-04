@@ -2,6 +2,7 @@
 
 package dev.ujhhgtg.wekit.features.core
 
+import androidx.compose.runtime.Composable
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
 import dev.ujhhgtg.comptime.nameOf
@@ -64,6 +65,10 @@ abstract class BaseFeature {
     open fun onEnable() {}
 
     open fun onDisable() {}
+
+    @Composable
+    open fun Ui() {
+    }
 
     private val _dexDelegates = mutableListOf<BaseDexDelegate>()
     val dexDelegates: List<BaseDexDelegate> get() = _dexDelegates

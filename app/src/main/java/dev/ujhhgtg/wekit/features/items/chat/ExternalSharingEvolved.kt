@@ -2,10 +2,10 @@ package dev.ujhhgtg.wekit.features.items.chat
 
 import android.app.Person
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.pm.ShortcutInfo
 import android.content.pm.ShortcutManager
+import androidx.activity.ComponentActivity
 import dev.ujhhgtg.comptime.This
 import dev.ujhhgtg.wekit.features.api.core.WeDatabaseApi
 import dev.ujhhgtg.wekit.features.core.ClickableFeature
@@ -31,7 +31,7 @@ object ExternalSharingEvolved : ClickableFeature() {
         }
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         val ctx = HostInfo.application
         val sm = ctx.getSystemService<ShortcutManager>()
 

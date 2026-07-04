@@ -1,7 +1,6 @@
 package dev.ujhhgtg.wekit.features.items.chat
 
 import android.app.Activity
-import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -10,6 +9,7 @@ import android.os.Handler
 import android.os.Looper
 import android.view.ContextThemeWrapper
 import android.view.View
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -265,7 +265,7 @@ object EmojiGameControl : ClickableFeature(), IResolveDex {
         keepAliveHandler = null
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             AlertDialogContent(
                 title = { Text("表情游戏控制") },

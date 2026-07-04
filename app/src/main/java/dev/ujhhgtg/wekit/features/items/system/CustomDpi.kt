@@ -1,7 +1,7 @@
 package dev.ujhhgtg.wekit.features.items.system
 
-import android.content.Context
 import android.util.DisplayMetrics
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
@@ -68,7 +68,7 @@ object CustomDpi : ClickableFeature(), IResolveDex {
         hookTabIconScale()
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             var value by remember { mutableStateOf(customDpi.toString()) }
 

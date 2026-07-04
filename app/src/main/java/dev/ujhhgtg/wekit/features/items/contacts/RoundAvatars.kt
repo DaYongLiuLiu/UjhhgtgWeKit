@@ -1,6 +1,6 @@
 package dev.ujhhgtg.wekit.features.items.contacts
 
-import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
@@ -87,7 +87,7 @@ object RoundAvatars : ClickableFeature(), IResolveDex {
         }
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             var value by remember { mutableFloatStateOf(radiusFactor) }
 

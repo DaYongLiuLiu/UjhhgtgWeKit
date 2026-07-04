@@ -1,9 +1,9 @@
 package dev.ujhhgtg.wekit.features.items.chat
 
 import android.content.ContentValues
-import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -65,7 +65,11 @@ import kotlin.io.path.readText
 import kotlin.io.path.walk
 import kotlin.io.path.writeText
 
-@Feature(name = "贴纸包同步", categories = ["聊天"], description = "从指定路径将所有图片注册为贴纸包\n搭配 Telegram Xposed 模块 StickersSync 使用, 或使用自带此功能的 (例如 Nagram) 的第三方客户端\n注意: 每张贴纸第一次加载由于需要计算 MD5 速度较慢, 后续加载得益于缓存与并发速度将大大加快 (~2000 个贴纸仅需 4 秒)")
+@Feature(
+    name = "贴纸包同步",
+    categories = ["聊天"],
+    description = "从指定路径将所有图片注册为贴纸包\n搭配 Telegram Xposed 模块 StickersSync 使用, 或使用自带此功能的 (例如 Nagram) 的第三方客户端\n注意: 每张贴纸第一次加载由于需要计算 MD5 速度较慢, 后续加载得益于缓存与并发速度将大大加快 (~2000 个贴纸仅需 4 秒)"
+)
 object StickersSync : ClickableFeature(), IResolveDex {
 
     private val TAG = nameOf(StickersSync)
@@ -389,7 +393,7 @@ object StickersSync : ClickableFeature(), IResolveDex {
         }
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             AlertDialogContent(
                 title = { Text("贴纸包同步") },

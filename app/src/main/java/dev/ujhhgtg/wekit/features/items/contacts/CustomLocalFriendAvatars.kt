@@ -16,6 +16,7 @@ import android.view.View
 import android.widget.BaseAdapter
 import android.widget.ImageView
 import android.widget.SpinnerAdapter
+import androidx.activity.ComponentActivity
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -242,22 +243,24 @@ object CustomLocalFriendAvatars : ClickableFeature(), IContactInfoProvider, IRes
             methodMvvmLoadAvatar2,
             methodFeatureAvatarSimple1,
             methodPluginsdkLoadAvatar
-        ).forEach { it.method.hookBefore {
-            val imageView = args.getOrNull(0) as? ImageView ?: return@hookBefore
+        ).forEach {
+            it.method.hookBefore {
+                val imageView = args.getOrNull(0) as? ImageView ?: return@hookBefore
 //            var wxId = args.getOrNull(1) as? String ?: return@hookBefore
-            val wxId = args.getOrNull(1) as? String ?: return@hookBefore
+                val wxId = args.getOrNull(1) as? String ?: return@hookBefore
 
-            val redirectedId = fallbackUsernameProvider?.invoke(wxId)
-            if (redirectedId != null) {
+                val redirectedId = fallbackUsernameProvider?.invoke(wxId)
+                if (redirectedId != null) {
 //                wxId = redirectedId
-                args[1] = redirectedId
-                return@hookBefore
-            }
+                    args[1] = redirectedId
+                    return@hookBefore
+                }
 
-            if (applyCustomAvatar(imageView, wxId, roundAvatarRadiusFactor)) {
-                result = null
+                if (applyCustomAvatar(imageView, wxId, roundAvatarRadiusFactor)) {
+                    result = null
+                }
             }
-        } }
+        }
 
         methodHdGallerySetUsername.hookBefore {
             val username = args.getOrNull(0) as? String ?: return@hookBefore
@@ -280,11 +283,13 @@ object CustomLocalFriendAvatars : ClickableFeature(), IContactInfoProvider, IRes
     override fun getContactInfoItem(activity: Activity): List<PreferenceItem> {
         val wxId = activity.currentWxId ?: return emptyList()
         val hasCustomAvatar = avatarMap.containsKey(wxId)
-        return listOf(PreferenceItem(
-            key = PREF_KEY,
-            title = if (hasCustomAvatar) "更换自定义头像" else "添加自定义头像",
-            position = 1
-        ))
+        return listOf(
+            PreferenceItem(
+                key = PREF_KEY,
+                title = if (hasCustomAvatar) "更换自定义头像" else "添加自定义头像",
+                position = 1
+            )
+        )
     }
 
     override fun onItemClick(activity: Activity, key: String): Boolean {
@@ -300,7 +305,7 @@ object CustomLocalFriendAvatars : ClickableFeature(), IContactInfoProvider, IRes
         return true
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             CustomAvatarManagerDialog(
                 contacts = remember { loadContacts() },
@@ -402,7 +407,7 @@ object CustomLocalFriendAvatars : ClickableFeature(), IContactInfoProvider, IRes
             HostInfo.application.contentResolver.openInputStream(uri.toUri())?.use { stream ->
                 android.graphics.BitmapFactory.decodeStream(stream)
             }
-        } .getOrNull() ?: return null
+        }.getOrNull() ?: return null
 
         val cropped = centerCrop(bitmap, targetSize, targetSize)
         if (cropped !== bitmap && !bitmap.isRecycled) bitmap.recycle()

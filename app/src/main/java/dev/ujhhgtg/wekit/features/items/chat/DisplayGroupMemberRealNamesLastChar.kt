@@ -1,7 +1,6 @@
 package dev.ujhhgtg.wekit.features.items.chat
 
 import android.app.Activity
-import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.text.SpannableStringBuilder
@@ -9,6 +8,7 @@ import android.text.Spanned
 import android.text.style.ForegroundColorSpan
 import android.view.View
 import android.widget.TextView
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
@@ -33,14 +33,14 @@ import dev.ujhhgtg.wekit.features.api.ui.WeContactPrefsScreenApi.PreferenceItem
 import dev.ujhhgtg.wekit.features.api.ui.WeCurrentConversationApi
 import dev.ujhhgtg.wekit.features.core.ClickableFeature
 import dev.ujhhgtg.wekit.features.core.Feature
+import dev.ujhhgtg.wekit.features.items.chat.DisplayGroupMemberRealNamesLastChar.actualFetchRealName
+import dev.ujhhgtg.wekit.features.items.chat.DisplayGroupMemberRealNamesLastChar.cacheFile
 import dev.ujhhgtg.wekit.preferences.WePrefs
 import dev.ujhhgtg.wekit.ui.content.AlertDialogContent
 import dev.ujhhgtg.wekit.ui.content.Button
 import dev.ujhhgtg.wekit.ui.content.DefaultColumn
 import dev.ujhhgtg.wekit.ui.content.TextButton
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
-import dev.ujhhgtg.wekit.features.items.chat.DisplayGroupMemberRealNamesLastChar.actualFetchRealName
-import dev.ujhhgtg.wekit.features.items.chat.DisplayGroupMemberRealNamesLastChar.cacheFile
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.android.currentWxId
 import dev.ujhhgtg.wekit.utils.android.showToast
@@ -71,7 +71,7 @@ object DisplayGroupMemberRealNamesLastChar : ClickableFeature(), WeChatMessageVi
     private fun parseColor(value: String, fallback: String): Int =
         runCatching { value.toColorInt() }.getOrElse { fallback.toColorInt() }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             var fg by remember { mutableStateOf(annotationFg) }
 
@@ -185,6 +185,7 @@ object DisplayGroupMemberRealNamesLastChar : ClickableFeature(), WeChatMessageVi
     /** Outcome of a [actualFetchRealName] call, reported on the CGI callback thread. */
     private sealed interface FetchResult {
         data class Found(val realName: String) : FetchResult
+
         /** Server responded but field "4" was absent → contact deleted/blocked us, or abnormal account. */
         data object NoRealName : FetchResult
         data class Failure(val errType: Int, val errCode: Int, val errMsg: String?) : FetchResult

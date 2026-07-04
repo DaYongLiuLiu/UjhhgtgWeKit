@@ -1,13 +1,13 @@
 package dev.ujhhgtg.wekit.features.items.chat
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.graphics.Color
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.widget.RelativeLayout
 import android.widget.TextView
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -244,7 +244,7 @@ object MessageTimeEnhancements : ClickableFeature(),
         }
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             var displayFormatInput by remember { mutableStateOf(TextFieldValue(displayFormat)) }
             var timeFormatInput by remember { mutableStateOf(timeFormat) }
@@ -286,7 +286,9 @@ object MessageTimeEnhancements : ClickableFeature(),
                         FlowRow(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
                         ) {
                             val placeholders = listOf(
                                 $$"$time",

@@ -15,6 +15,7 @@ import android.text.style.RelativeSizeSpan
 import android.text.style.StyleSpan
 import android.util.TypedValue
 import android.view.View
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.ListItem
@@ -33,6 +34,7 @@ import androidx.core.graphics.toColorInt
 import androidx.core.graphics.withTranslation
 import com.tencent.mm.ui.widget.MMNeat7extView
 import dev.ujhhgtg.comptime.This
+import dev.ujhhgtg.reflekt.reflekt
 import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexClass
 import dev.ujhhgtg.wekit.features.api.core.WeMessageApi
@@ -45,7 +47,6 @@ import dev.ujhhgtg.wekit.ui.content.TextButton
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.android.isDarkMode
-import dev.ujhhgtg.reflekt.reflekt
 import dev.ujhhgtg.wekit.utils.strings.replaceEmojis
 import io.noties.markwon.AbstractMarkwonPlugin
 import io.noties.markwon.Markwon
@@ -280,7 +281,7 @@ object MarkdownRendering : ClickableFeature(), IResolveDex {
             .build()
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             AlertDialogContent(
                 title = { Text("Markdown 渲染") },

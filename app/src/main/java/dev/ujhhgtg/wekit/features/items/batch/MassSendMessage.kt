@@ -1,6 +1,7 @@
 package dev.ujhhgtg.wekit.features.items.batch
 
 import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -54,7 +55,7 @@ object MassSendMessage : ClickableFeature() {
         CARD("卡片消息 (XML)", "粘贴卡片消息的 appmsg XML, 点击「选择对象」挑选发送目标", "卡片 XML")
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         val contacts = WeDatabaseApi.getFriends() + WeDatabaseApi.getGroups()
 
         showComposeDialog(context) {

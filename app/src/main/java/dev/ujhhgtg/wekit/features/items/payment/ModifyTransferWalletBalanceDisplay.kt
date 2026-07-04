@@ -1,6 +1,6 @@
 package dev.ujhhgtg.wekit.features.items.payment
 
-import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.getValue
@@ -128,7 +128,7 @@ object ModifyTransferWalletBalanceDisplay : ClickableFeature(), IWePacketInterce
         WePacketManager.removeInterceptor(this)
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             var cftInput by remember {
                 mutableStateOf(

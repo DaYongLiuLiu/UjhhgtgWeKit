@@ -2,6 +2,7 @@ package dev.ujhhgtg.wekit.features.items.chat
 
 import android.content.Context
 import android.view.MenuItem
+import androidx.activity.ComponentActivity
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.getValue
@@ -77,7 +78,7 @@ object RemoveChatMessageContextMenuItems : ClickableFeature(), IResolveDex {
         }
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             var removedNames by remember { mutableStateOf(removedItemNames) }
             AlertDialogContent(

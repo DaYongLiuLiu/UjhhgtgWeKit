@@ -1,6 +1,7 @@
 package dev.ujhhgtg.wekit.features.items.debug
 
 import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.HorizontalDivider
@@ -10,7 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import dev.ujhhgtg.comptime.nameOf
+import dev.ujhhgtg.comptime.This
 import dev.ujhhgtg.wekit.features.core.ClickableFeature
 import dev.ujhhgtg.wekit.features.core.Feature
 import dev.ujhhgtg.wekit.ui.content.AlertDialogContent
@@ -23,9 +24,9 @@ import dev.ujhhgtg.wekit.utils.crash.NativeCrashHandler
 @Feature(name = "测试崩溃", categories = ["调试"], description = "没事别点")
 object TriggerCrash : ClickableFeature() {
 
-    private val TAG = nameOf(TriggerCrash)
+    private val TAG = This.Class.simpleName
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showCrashCategoryDialog(context)
     }
 

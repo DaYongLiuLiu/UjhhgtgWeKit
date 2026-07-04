@@ -1,6 +1,6 @@
 package dev.ujhhgtg.wekit.features.items.debug
 
-import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.compose.material3.Text
 import dev.ujhhgtg.wekit.dexkit.cache.DexCacheManager
 import dev.ujhhgtg.wekit.features.core.ClickableFeature
@@ -18,7 +18,7 @@ import kotlinx.coroutines.withContext
 @Feature(name = "重置适配信息", categories = ["调试"], description = "清除全部 DEX 适配信息, 等待下次启动时重新适配")
 object ResetDexCache : ClickableFeature() {
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             AlertDialogContent(
                 title = { Text("清除适配信息") },

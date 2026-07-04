@@ -1,6 +1,6 @@
 package dev.ujhhgtg.wekit.features.items.system
 
-import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -127,13 +127,14 @@ object FeatureFlagManager : ClickableFeature(), IResolveDex {
         val rawValue: String
     ) {
         /** The runtime value to set as hook result. */
-        val value: Any get() = when (internalType) {
-            "i" -> rawValue.toInt()
-            "f" -> rawValue.toFloat()
-            "l" -> rawValue.toLong()
-            "s" -> rawValue
-            else -> error("Unknown override type: $internalType")
-        }
+        val value: Any
+            get() = when (internalType) {
+                "i" -> rawValue.toInt()
+                "f" -> rawValue.toFloat()
+                "l" -> rawValue.toLong()
+                "s" -> rawValue
+                else -> error("Unknown override type: $internalType")
+            }
     }
 
     // ---------------------------------------------------------------------------
@@ -206,7 +207,7 @@ object FeatureFlagManager : ClickableFeature(), IResolveDex {
     // UI — Dialog
     // ---------------------------------------------------------------------------
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             FeatureFlagManagerDialog(onDismiss = onDismiss)
         }
@@ -270,9 +271,11 @@ object FeatureFlagManager : ClickableFeature(), IResolveDex {
                             filteredClasses.isEmpty() && featureFlagClasses.isEmpty() -> {
                                 EmptyState()
                             }
+
                             filteredClasses.isEmpty() -> {
                                 NoMatchState()
                             }
+
                             else -> {
                                 FlagList(classNames = filteredClasses)
                             }
@@ -290,7 +293,9 @@ object FeatureFlagManager : ClickableFeature(), IResolveDex {
 
     @Composable
     private fun ColumnScope.LoadingView() {
-        Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
+        Box(Modifier
+            .fillMaxWidth()
+            .weight(1f), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 CircularWavyProgressIndicator()
                 Spacer(Modifier.height(8.dp))
@@ -301,14 +306,18 @@ object FeatureFlagManager : ClickableFeature(), IResolveDex {
 
     @Composable
     private fun ColumnScope.EmptyState() {
-        Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
+        Box(Modifier
+            .fillMaxWidth()
+            .weight(1f), contentAlignment = Alignment.Center) {
             Text("未找到灰度测试类", style = MaterialTheme.typography.bodyMedium)
         }
     }
 
     @Composable
     private fun ColumnScope.NoMatchState() {
-        Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
+        Box(Modifier
+            .fillMaxWidth()
+            .weight(1f), contentAlignment = Alignment.Center) {
             Text("未找到匹配的类", style = MaterialTheme.typography.bodyMedium)
         }
     }
@@ -322,7 +331,9 @@ object FeatureFlagManager : ClickableFeature(), IResolveDex {
         OutlinedTextField(
             value = query,
             onValueChange = onQueryChange,
-            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp),
             placeholder = { Text("搜索类名...") },
             singleLine = true,
             trailingIcon = {
@@ -337,7 +348,9 @@ object FeatureFlagManager : ClickableFeature(), IResolveDex {
 
     @Composable
     private fun ColumnScope.FlagList(classNames: List<String>) {
-        LazyColumn(Modifier.fillMaxWidth().weight(1f)) {
+        LazyColumn(Modifier
+            .fillMaxWidth()
+            .weight(1f)) {
             items(classNames) { className ->
                 FlagListItem(className = className)
             }
@@ -357,7 +370,10 @@ object FeatureFlagManager : ClickableFeature(), IResolveDex {
 
         Text(
             text = className.substringAfterLast('.'),
-            modifier = Modifier.fillMaxWidth().clickable { showActionDialog = true }.padding(vertical = 12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { showActionDialog = true }
+                .padding(vertical = 12.dp),
             style = MaterialTheme.typography.bodyMedium
         )
         HorizontalDivider(Modifier.alpha(0.3f))
@@ -408,7 +424,9 @@ object FeatureFlagManager : ClickableFeature(), IResolveDex {
                 } else null
 
                 Column(
-                    modifier = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.large)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(MaterialTheme.shapes.large)
                 ) {
                     CopyInfoItem("复制完整类名", className)
                     CopyInfoItem("复制功能内部名称", internalName)
@@ -524,6 +542,7 @@ object FeatureFlagManager : ClickableFeature(), IResolveDex {
                             }
                             FeatureFlagOverride(runtimeKey, "i", rawValueStr)
                         }
+
                         "l", "long" -> {
                             val v = rawValueStr.toLongOrNull()
                             if (v == null) {
@@ -532,6 +551,7 @@ object FeatureFlagManager : ClickableFeature(), IResolveDex {
                             }
                             FeatureFlagOverride(runtimeKey, "l", rawValueStr)
                         }
+
                         "f", "float" -> {
                             val v = rawValueStr.toFloatOrNull()
                             if (v == null) {
@@ -540,6 +560,7 @@ object FeatureFlagManager : ClickableFeature(), IResolveDex {
                             }
                             FeatureFlagOverride(runtimeKey, "f", rawValueStr)
                         }
+
                         else -> {
                             showToast("类型格式不正确, 请重新输入")
                             return@Button

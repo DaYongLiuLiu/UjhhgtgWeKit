@@ -13,7 +13,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.Icon
 import androidx.core.content.ContextCompat
-import dev.ujhhgtg.comptime.nameOf
+import dev.ujhhgtg.comptime.This
 import dev.ujhhgtg.reflekt.reflekt
 import dev.ujhhgtg.wekit.constants.PackageNames
 import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
@@ -46,10 +46,14 @@ import kotlin.io.path.pathString
 import kotlin.io.path.writeBytes
 import kotlin.time.Duration.Companion.milliseconds
 
-@Feature(name = "通知进化", categories = ["通知"], description = "让微信的新消息通知更易用\n1. 「快速回复」按钮\n2. 「标记为已读」按钮\n3. 使用原生对话样式 (MessagingStyle)")
+@Feature(
+    name = "通知进化",
+    categories = ["通知"],
+    description = "让微信的新消息通知更易用\n1. 「快速回复」按钮\n2. 「标记为已读」按钮\n3. 使用原生对话样式 (MessagingStyle)"
+)
 object NotificationsEvolved : SwitchFeature(), IResolveDex {
 
-    private val TAG = nameOf(NotificationsEvolved)
+    private val TAG = This.Class.simpleName
 
     // com.tencent.mm.booter.notification.x.d(x, String talker, String content, int, int, boolean)
     // args[1] is the talker wxid. Anchored on a log string unique to that method.

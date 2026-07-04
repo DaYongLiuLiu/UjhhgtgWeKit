@@ -1,7 +1,7 @@
 package dev.ujhhgtg.wekit.features.items.system
 
-import android.content.Context
 import android.content.Intent
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -92,7 +92,7 @@ object QrCodeRecord : ClickableFeature(), IResolveDex {
         saveRecords()
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         if (!loaded) {
             loadRecords()
             loaded = true
@@ -228,9 +228,11 @@ object QrCodeRecord : ClickableFeature(), IResolveDex {
             url.startsWith("https://u.wechat.com") -> {
                 MaterialSymbols.Outlined.Person to Color(0xFF07C160)
             }
+
             url.startsWith("https://wx.tenpay.com") || url.startsWith("weixin://wxpay") -> {
                 MaterialSymbols.Outlined.Shopping_cart to Color(0xFFFDAE17)
             }
+
             else -> {
                 MaterialSymbols.Outlined.Info to MaterialTheme.colorScheme.onSurfaceVariant
             }
@@ -257,6 +259,7 @@ object QrCodeRecord : ClickableFeature(), IResolveDex {
             usingEqStrings("MicroMsg.QBarStringHandler", "key_offline_scan_show_tips")
         }
     }
+
     override fun resolveDex(dexKit: DexKitBridge) {
     }
 }

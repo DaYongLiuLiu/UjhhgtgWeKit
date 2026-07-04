@@ -1,10 +1,10 @@
 package dev.ujhhgtg.wekit.features.items.beautify
 
-import android.content.Context
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ListView
 import android.widget.TextView
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Switch
@@ -77,7 +77,7 @@ object HideMeTabPageItems : ClickableFeature(), IResolveDex {
         }
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             var hideMomentsInput by remember { mutableStateOf(hideMoments) }
             var hideFinderInput by remember { mutableStateOf(hideFinder) }
@@ -216,20 +216,6 @@ object HideMeTabPageItems : ClickableFeature(), IResolveDex {
         previous.layoutParams?.let { params ->
             params.height = 1
             previous.layoutParams = params
-        }
-    }
-
-    private inline fun traverse(root: View, action: (View) -> Unit) {
-        val queue = ArrayDeque<View>()
-        queue.add(root)
-        while (queue.isNotEmpty()) {
-            val view = queue.removeFirst()
-            action(view)
-            (view as? ViewGroup)?.let { group ->
-                for (i in 0 until group.childCount) {
-                    queue.add(group.getChildAt(i))
-                }
-            }
         }
     }
 }

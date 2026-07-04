@@ -5,6 +5,7 @@ import android.os.Build
 import android.os.Bundle
 import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.view.View
+import androidx.activity.ComponentActivity
 import androidx.annotation.RequiresApi
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
@@ -100,7 +101,7 @@ object FingerprintPay : ClickableFeature() {
         }
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             showToast("Android 版本过低 (< Android 11), 无法使用指纹验证!")
             return
@@ -242,6 +243,22 @@ object FingerprintPay : ClickableFeature() {
             showToast("捕获到未处理的异常! 请向模块作者报告问题")
             WeLogger.e(TAG, "unhandled exception", e)
             return
+        }
+        val action: FragmentActivity.() -> Unit = {
+            buildPrompt(this) { result ->
+                val authorizedCipher = result.cryptoObject?.cipher ?: run {
+                    showToast("指纹验证成功, 但无法获取密文对象! 请向模块作者报告问题")
+                    return@buildPrompt
+                }
+                val plaintext = runCatching {
+                    CryptoManager.decrypt(encryptedData, authorizedCipher)
+                }.getOrElse {
+                    WeLogger.e(TAG, "failed to decrypt", it)
+                    showToast(context, "解密失败! 请向模块作者报告问题")
+                    return@buildPrompt
+                }
+                onSuccess(plaintext)
+            }.authenticate(promptInfo, BiometricPrompt.CryptoObject(cipher))
         }
         TransparentActivity.launch(context) {
             buildPrompt(this) { result ->

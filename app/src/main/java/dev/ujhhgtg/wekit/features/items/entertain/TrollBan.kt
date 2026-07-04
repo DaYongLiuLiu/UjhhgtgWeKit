@@ -1,6 +1,6 @@
 package dev.ujhhgtg.wekit.features.items.entertain
 
-import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.core.net.toUri
 import dev.ujhhgtg.wekit.features.api.core.WeMessageApi
 import dev.ujhhgtg.wekit.features.api.ui.WeAlertDialogApi
@@ -18,7 +18,7 @@ object TrollBan : ClickableFeature() {
 
     const val URL: String = "https://www.bilibili.com/video/BV1GJ411x7h7"
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         val json = JSONObject()
         val json2 = JSONObject()
         val json3 = JSONObject()

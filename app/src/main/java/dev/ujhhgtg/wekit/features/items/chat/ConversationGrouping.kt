@@ -79,7 +79,7 @@ import dev.ujhhgtg.wekit.ui.content.ContactsSelector
 import dev.ujhhgtg.wekit.ui.content.DefaultColumn
 import dev.ujhhgtg.wekit.ui.content.IconButton
 import dev.ujhhgtg.wekit.ui.content.TextButton
-import dev.ujhhgtg.wekit.ui.utils.AppTheme
+import dev.ujhhgtg.wekit.ui.utils.InjectedUiTheme
 import dev.ujhhgtg.wekit.ui.utils.LifecycleOwnerProvider
 import dev.ujhhgtg.wekit.ui.utils.setLifecycleOwner
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
@@ -136,7 +136,7 @@ object ConversationGrouping : SwitchFeature(), IResolveDex {
                 val selectedGroupIdState = mutableStateOf<String?>(null)
                 val groupsState = mutableStateOf(loadGroups())
                 setContent {
-                    AppTheme {
+                    InjectedUiTheme {
                         var selectedGroupId by selectedGroupIdState
                         var groups by groupsState
 

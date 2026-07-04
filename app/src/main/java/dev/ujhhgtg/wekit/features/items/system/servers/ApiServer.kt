@@ -1,7 +1,7 @@
 package dev.ujhhgtg.wekit.features.items.system.servers
 
 import android.content.ContentValues
-import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.getValue
@@ -136,22 +136,63 @@ object ApiServer : ClickableFeature() {
     data class ShareFileRequest(val convId: String, val title: String, val path: String, val appId: String)
 
     @Serializable
-    data class ShareLinkRequest(val convId: String, val title: String, val description: String, val webpageUrl: String, val thumbDataBase64: String? = null, val appId: String)
+    data class ShareLinkRequest(
+        val convId: String,
+        val title: String,
+        val description: String,
+        val webpageUrl: String,
+        val thumbDataBase64: String? = null,
+        val appId: String
+    )
 
     @Serializable
-    data class ShareVideoRequest(val convId: String, val title: String, val description: String, val videoUrl: String, val thumbDataBase64: String? = null, val appId: String)
+    data class ShareVideoRequest(
+        val convId: String,
+        val title: String,
+        val description: String,
+        val videoUrl: String,
+        val thumbDataBase64: String? = null,
+        val appId: String
+    )
 
     @Serializable
     data class ShareTextRequest(val convId: String, val text: String, val appId: String)
 
     @Serializable
-    data class ShareMusicRequest(val convId: String, val title: String, val description: String, val musicUrl: String, val musicDataUrl: String, val thumbDataBase64: String? = null, val appId: String)
+    data class ShareMusicRequest(
+        val convId: String,
+        val title: String,
+        val description: String,
+        val musicUrl: String,
+        val musicDataUrl: String,
+        val thumbDataBase64: String? = null,
+        val appId: String
+    )
 
     @Serializable
-    data class ShareMusicVideoRequest(val convId: String, val title: String, val description: String, val musicUrl: String, val musicDataUrl: String, val singerName: String, val duration: Int, val songLyric: String, val thumbDataBase64: String? = null, val appId: String)
+    data class ShareMusicVideoRequest(
+        val convId: String,
+        val title: String,
+        val description: String,
+        val musicUrl: String,
+        val musicDataUrl: String,
+        val singerName: String,
+        val duration: Int,
+        val songLyric: String,
+        val thumbDataBase64: String? = null,
+        val appId: String
+    )
 
     @Serializable
-    data class ShareMiniProgramRequest(val convId: String, val title: String, val description: String, val username: String, val path: String, val thumbDataBase64: String? = null, val appId: String)
+    data class ShareMiniProgramRequest(
+        val convId: String,
+        val title: String,
+        val description: String,
+        val username: String,
+        val path: String,
+        val thumbDataBase64: String? = null,
+        val appId: String
+    )
 
     @Serializable
     data class MemberRequest(val memberWxid: String? = null, val memberWxids: List<String>? = null)
@@ -854,7 +895,8 @@ object ApiServer : ClickableFeature() {
             val songLyric = args["song-lyric"]?.jsonPrimitive?.content ?: ""
             val appId = args["app-id"]?.jsonPrimitive?.content ?: return@addTool textRes("Invalid app-id", true)
             val thumb = args["thumb-data-base64"]?.jsonPrimitive?.content
-            WeChatService.shareMusicVideo(convId, title, description, musicUrl, musicDataUrl, singerName, duration, songLyric, thumb, appId).toCallToolResult { textRes("Shared successfully") }
+            WeChatService.shareMusicVideo(convId, title, description, musicUrl, musicDataUrl, singerName, duration, songLyric, thumb, appId)
+                .toCallToolResult { textRes("Shared successfully") }
         }
 
         addTool(
@@ -1378,9 +1420,11 @@ object ApiServer : ClickableFeature() {
                             is PartData.FormItem -> {
                                 if (part.name == "convId") convId = part.value
                             }
+
                             is PartData.FileItem -> {
                                 tempFile = saveUploadedFile(part)
                             }
+
                             else -> {}
                         }
                         part.release()
@@ -1410,9 +1454,11 @@ object ApiServer : ClickableFeature() {
                                 if (part.name == "convId") convId = part.value
                                 else if (part.name == "durationMs") durationMs = part.value.toIntOrNull() ?: 0
                             }
+
                             is PartData.FileItem -> {
                                 tempFile = saveUploadedFile(part)
                             }
+
                             else -> {}
                         }
                         part.release()
@@ -1420,7 +1466,12 @@ object ApiServer : ClickableFeature() {
                     if (convId == null || tempFile == null) {
                         return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing convId or file"))
                     }
-                    call.respondResult(WeChatService.sendVoiceMessage(convId, tempFile.absolutePath, durationMs)) { respond(HttpStatusCode.OK, SuccessResponse()) }
+                    call.respondResult(WeChatService.sendVoiceMessage(convId, tempFile.absolutePath, durationMs)) {
+                        respond(
+                            HttpStatusCode.OK,
+                            SuccessResponse()
+                        )
+                    }
                 } else {
                     val req = runCatching { call.receive<VoiceMessageRequest>() }.getOrNull()
                         ?: return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid request body"))
@@ -1440,9 +1491,11 @@ object ApiServer : ClickableFeature() {
                             is PartData.FormItem -> {
                                 if (part.name == "convId") convId = part.value
                             }
+
                             is PartData.FileItem -> {
                                 tempFile = saveUploadedFile(part)
                             }
+
                             else -> {}
                         }
                         part.release()
@@ -1472,10 +1525,12 @@ object ApiServer : ClickableFeature() {
                                 if (part.name == "convId") convId = part.value
                                 else if (part.name == "title") title = part.value
                             }
+
                             is PartData.FileItem -> {
                                 if (title == null) title = part.originalFileName
                                 tempFile = saveUploadedFile(part)
                             }
+
                             else -> {}
                         }
                         part.release()
@@ -1483,7 +1538,12 @@ object ApiServer : ClickableFeature() {
                     if (convId == null || tempFile == null) {
                         return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing convId or file"))
                     }
-                    call.respondResult(WeChatService.sendFileMessage(convId, tempFile.absolutePath, title ?: tempFile.name)) { respond(HttpStatusCode.OK, SuccessResponse()) }
+                    call.respondResult(WeChatService.sendFileMessage(convId, tempFile.absolutePath, title ?: tempFile.name)) {
+                        respond(
+                            HttpStatusCode.OK,
+                            SuccessResponse()
+                        )
+                    }
                 } else {
                     val req = runCatching { call.receive<FileMessageRequest>() }.getOrNull()
                         ?: return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid request body"))
@@ -1503,9 +1563,11 @@ object ApiServer : ClickableFeature() {
                             is PartData.FormItem -> {
                                 if (part.name == "convId") convId = part.value
                             }
+
                             is PartData.FileItem -> {
                                 tempFile = saveUploadedFile(part)
                             }
+
                             else -> {}
                         }
                         part.release()
@@ -1532,7 +1594,12 @@ object ApiServer : ClickableFeature() {
             post("messages/location") {
                 val req = runCatching { call.receive<LocationMessageRequest>() }.getOrNull()
                     ?: return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid request body"))
-                call.respondResult(WeChatService.sendLocationMessage(req.convId, req.poiName, req.label, req.x, req.y, req.scale)) { respond(HttpStatusCode.OK, SuccessResponse()) }
+                call.respondResult(WeChatService.sendLocationMessage(req.convId, req.poiName, req.label, req.x, req.y, req.scale)) {
+                    respond(
+                        HttpStatusCode.OK,
+                        SuccessResponse()
+                    )
+                }
             }
 
             // POST /api/messages/share-card
@@ -1574,7 +1641,12 @@ object ApiServer : ClickableFeature() {
             post("messages/app-brand") {
                 val req = runCatching { call.receive<AppBrandMessageRequest>() }.getOrNull()
                     ?: return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid request body"))
-                call.respondResult(WeChatService.sendAppBrandMessage(req.convId, req.title, req.pagePath, req.username)) { respond(HttpStatusCode.OK, SuccessResponse()) }
+                call.respondResult(WeChatService.sendAppBrandMessage(req.convId, req.title, req.pagePath, req.username)) {
+                    respond(
+                        HttpStatusCode.OK,
+                        SuccessResponse()
+                    )
+                }
             }
 
             // POST /api/messages/revoke
@@ -1588,7 +1660,12 @@ object ApiServer : ClickableFeature() {
             post("messages/system") {
                 val req = runCatching { call.receive<SystemMessageRequest>() }.getOrNull()
                     ?: return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid request body"))
-                call.respondResult(WeChatService.insertSystemMessage(req.convId, req.content, req.timeMs ?: System.currentTimeMillis())) { respond(HttpStatusCode.OK, SuccessResponse()) }
+                call.respondResult(WeChatService.insertSystemMessage(req.convId, req.content, req.timeMs ?: System.currentTimeMillis())) {
+                    respond(
+                        HttpStatusCode.OK,
+                        SuccessResponse()
+                    )
+                }
             }
 
             // POST /api/share/file
@@ -1609,10 +1686,12 @@ object ApiServer : ClickableFeature() {
                                     "appId" -> appId = part.value
                                 }
                             }
+
                             is PartData.FileItem -> {
                                 if (title == null) title = part.originalFileName
                                 tempFile = saveUploadedFile(part)
                             }
+
                             else -> {}
                         }
                         part.release()
@@ -1620,7 +1699,12 @@ object ApiServer : ClickableFeature() {
                     if (convId == null || tempFile == null) {
                         return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing convId or file"))
                     }
-                    call.respondResult(WeChatService.shareFile(convId, title ?: tempFile.name, tempFile.absolutePath, appId ?: "")) { respond(HttpStatusCode.OK, SuccessResponse()) }
+                    call.respondResult(WeChatService.shareFile(convId, title ?: tempFile.name, tempFile.absolutePath, appId ?: "")) {
+                        respond(
+                            HttpStatusCode.OK,
+                            SuccessResponse()
+                        )
+                    }
                 } else {
                     val req = runCatching { call.receive<ShareFileRequest>() }.getOrNull()
                         ?: return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid request body"))
@@ -1632,14 +1716,28 @@ object ApiServer : ClickableFeature() {
             post("share/webpage") {
                 val req = runCatching { call.receive<ShareLinkRequest>() }.getOrNull()
                     ?: return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid request body"))
-                call.respondResult(WeChatService.shareWebpage(req.convId, req.title, req.description, req.webpageUrl, req.thumbDataBase64, req.appId)) { respond(HttpStatusCode.OK, SuccessResponse()) }
+                call.respondResult(
+                    WeChatService.shareWebpage(
+                        req.convId,
+                        req.title,
+                        req.description,
+                        req.webpageUrl,
+                        req.thumbDataBase64,
+                        req.appId
+                    )
+                ) { respond(HttpStatusCode.OK, SuccessResponse()) }
             }
 
             // POST /api/share/video
             post("share/video") {
                 val req = runCatching { call.receive<ShareVideoRequest>() }.getOrNull()
                     ?: return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid request body"))
-                call.respondResult(WeChatService.shareVideo(req.convId, req.title, req.description, req.videoUrl, req.thumbDataBase64, req.appId)) { respond(HttpStatusCode.OK, SuccessResponse()) }
+                call.respondResult(WeChatService.shareVideo(req.convId, req.title, req.description, req.videoUrl, req.thumbDataBase64, req.appId)) {
+                    respond(
+                        HttpStatusCode.OK,
+                        SuccessResponse()
+                    )
+                }
             }
 
             // POST /api/share/text
@@ -1653,21 +1751,54 @@ object ApiServer : ClickableFeature() {
             post("share/music") {
                 val req = runCatching { call.receive<ShareMusicRequest>() }.getOrNull()
                     ?: return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid request body"))
-                call.respondResult(WeChatService.shareMusic(req.convId, req.title, req.description, req.musicUrl, req.musicDataUrl, req.thumbDataBase64, req.appId)) { respond(HttpStatusCode.OK, SuccessResponse()) }
+                call.respondResult(
+                    WeChatService.shareMusic(
+                        req.convId,
+                        req.title,
+                        req.description,
+                        req.musicUrl,
+                        req.musicDataUrl,
+                        req.thumbDataBase64,
+                        req.appId
+                    )
+                ) { respond(HttpStatusCode.OK, SuccessResponse()) }
             }
 
             // POST /api/share/music-video
             post("share/music-video") {
                 val req = runCatching { call.receive<ShareMusicVideoRequest>() }.getOrNull()
                     ?: return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid request body"))
-                call.respondResult(WeChatService.shareMusicVideo(req.convId, req.title, req.description, req.musicUrl, req.musicDataUrl, req.singerName, req.duration, req.songLyric, req.thumbDataBase64, req.appId)) { respond(HttpStatusCode.OK, SuccessResponse()) }
+                call.respondResult(
+                    WeChatService.shareMusicVideo(
+                        req.convId,
+                        req.title,
+                        req.description,
+                        req.musicUrl,
+                        req.musicDataUrl,
+                        req.singerName,
+                        req.duration,
+                        req.songLyric,
+                        req.thumbDataBase64,
+                        req.appId
+                    )
+                ) { respond(HttpStatusCode.OK, SuccessResponse()) }
             }
 
             // POST /api/share/mini-program
             post("share/mini-program") {
                 val req = runCatching { call.receive<ShareMiniProgramRequest>() }.getOrNull()
                     ?: return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid request body"))
-                call.respondResult(WeChatService.shareMiniProgram(req.convId, req.title, req.description, req.username, req.path, req.thumbDataBase64, req.appId)) { respond(HttpStatusCode.OK, SuccessResponse()) }
+                call.respondResult(
+                    WeChatService.shareMiniProgram(
+                        req.convId,
+                        req.title,
+                        req.description,
+                        req.username,
+                        req.path,
+                        req.thumbDataBase64,
+                        req.appId
+                    )
+                ) { respond(HttpStatusCode.OK, SuccessResponse()) }
             }
 
             route("contacts") {
@@ -1802,9 +1933,11 @@ object ApiServer : ClickableFeature() {
                                         "sdkAppName" -> sdkAppName = part.value
                                     }
                                 }
+
                                 is PartData.FileItem -> {
                                     tempFiles.add(saveUploadedFile(part))
                                 }
+
                                 else -> {}
                             }
                             part.release()
@@ -1830,14 +1963,24 @@ object ApiServer : ClickableFeature() {
                 post("confirm") {
                     val req = runCatching { call.receive<ConfirmTransferRequest>() }.getOrNull()
                         ?: return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid request body"))
-                    call.respondResult(WeChatService.confirmTransfer(req.transId, req.transId, req.transSpanId, req.invalidTime)) { respond(HttpStatusCode.OK, SuccessResponse()) }
+                    call.respondResult(WeChatService.confirmTransfer(req.transId, req.transId, req.transSpanId, req.invalidTime)) {
+                        respond(
+                            HttpStatusCode.OK,
+                            SuccessResponse()
+                        )
+                    }
                 }
 
                 // POST /api/payments/transfer/refuse
                 post("refuse") {
                     val req = runCatching { call.receive<RefuseTransferRequest>() }.getOrNull()
                         ?: return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid request body"))
-                    call.respondResult(WeChatService.refuseTransfer(req.transId, req.transId, req.transSpanId)) { respond(HttpStatusCode.OK, SuccessResponse()) }
+                    call.respondResult(WeChatService.refuseTransfer(req.transId, req.transId, req.transSpanId)) {
+                        respond(
+                            HttpStatusCode.OK,
+                            SuccessResponse()
+                        )
+                    }
                 }
             }
 
@@ -1951,7 +2094,7 @@ object ApiServer : ClickableFeature() {
         showToast("服务器已停止")
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             var authToken by remember { mutableStateOf(authToken) }
             var serverPortInput by remember { mutableStateOf(serverPort.toString()) }

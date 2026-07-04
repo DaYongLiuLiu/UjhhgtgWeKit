@@ -11,6 +11,7 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import androidx.activity.ComponentActivity
 import androidx.collection.mutableIntSetOf
 import androidx.compose.foundation.clickable
 import androidx.compose.material3.ListItem
@@ -303,13 +304,15 @@ object HideContacts : ClickableFeature(), IResolveDex, WeChatInputBarApi.IInputB
 
         listOf(
             methodVoipAcceptIncomingCall, methodVoipStartAcceptVoip
-        ).forEach { it.hookBefore {
-            val callerWxId = args[0].reflekt().firstField { type = BString }.get()!! as String
-            if (!temporarilyShown && callerWxId in hiddenContacts) {
-                pendingVoipUser = callerWxId
-                result = null
+        ).forEach {
+            it.hookBefore {
+                val callerWxId = args[0].reflekt().firstField { type = BString }.get()!! as String
+                if (!temporarilyShown && callerWxId in hiddenContacts) {
+                    pendingVoipUser = callerWxId
+                    result = null
+                }
             }
-        } }
+        }
 
         methodVoipShowFloatingCard.hookBefore {
             val wxId = args[5] as? String? ?: return@hookBefore
@@ -383,6 +386,7 @@ object HideContacts : ClickableFeature(), IResolveDex, WeChatInputBarApi.IInputB
                 temporarilyShown = true
                 showToast(chatFooter.context, "已临时显示所有隐藏的联系人, 输入 #hide 恢复隐藏")
             }
+
             "#hide" -> {
                 chatFooter.lastText = ""
                 if (!temporarilyShown) {
@@ -411,7 +415,7 @@ object HideContacts : ClickableFeature(), IResolveDex, WeChatInputBarApi.IInputB
         if (sql.contains("SnsInfo.userName not in", true)) return null
 
         val filter = " AND SnsInfo.userName NOT IN (" +
-            hidden.joinToString(",") { "\"${it.replace("\"", "\"\"")}\"" } + ") "
+                hidden.joinToString(",") { "\"${it.replace("\"", "\"\"")}\"" } + ") "
 
         val rewritten = when {
             sql.contains(FEED_MARKER_RAW) ->
@@ -445,11 +449,12 @@ object HideContacts : ClickableFeature(), IResolveDex, WeChatInputBarApi.IInputB
 
     private var autoRejectVoip by prefOption("hide_auto_reject", false)
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         val regularContacts = WeDatabaseApi.getFriends() + WeDatabaseApi.getGroups()
 
         showComposeDialog(context) {
-            AlertDialogContent(title = { Text("隐藏联系人") },
+            AlertDialogContent(
+                title = { Text("隐藏联系人") },
                 text = {
                     DefaultColumn {
                         var autoRejectVoipInput by remember { mutableStateOf(autoRejectVoip) }
@@ -489,7 +494,7 @@ object HideContacts : ClickableFeature(), IResolveDex, WeChatInputBarApi.IInputB
         }
     }
 
-//    private val methodMainAdapterPerformSearch by dexMethod()
+    //    private val methodMainAdapterPerformSearch by dexMethod()
     private val methodAddressMvvmListPreprocessList by dexMethod {
         matcher {
             declaredClass = "com.tencent.mm.ui.contact.address.AddressLiveList"
@@ -511,7 +516,8 @@ object HideContacts : ClickableFeature(), IResolveDex, WeChatInputBarApi.IInputB
             }
         }
     }
-//    private val methodVoipLaunchNotify by dexMethod {
+
+    //    private val methodVoipLaunchNotify by dexMethod {
 //        matcher {
 //            usingEqStrings("MicroMsg.VoIPMP.CoreV2", "launchNotify")
 //        }

@@ -2,10 +2,10 @@ package dev.ujhhgtg.wekit.features.items.beautify
 
 import android.app.Activity
 import android.app.Dialog
-import android.content.Context
 import android.os.Build
 import android.view.Window
 import android.view.WindowManager
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ListItem
@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.tencent.mm.ui.halfscreen.HalfScreenTransparentActivity
 import dev.ujhhgtg.comptime.nameOf
+import dev.ujhhgtg.reflekt.reflekt
 import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexClass
 import dev.ujhhgtg.wekit.features.core.ClickableFeature
@@ -27,7 +28,6 @@ import dev.ujhhgtg.wekit.ui.content.AlertDialogContent
 import dev.ujhhgtg.wekit.ui.content.Button
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.WeLogger
-import dev.ujhhgtg.reflekt.reflekt
 import java.lang.reflect.Modifier
 import kotlin.math.roundToInt
 
@@ -103,7 +103,7 @@ object ApplyDialogBackgroundBlur : ClickableFeature(), IResolveDex {
         }
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             AlertDialogContent(
                 title = { Text("对话框窗口级背景模糊") },

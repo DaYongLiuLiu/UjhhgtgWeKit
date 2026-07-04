@@ -2,6 +2,7 @@ package dev.ujhhgtg.wekit.features.items.moments
 
 import android.content.Context
 import android.view.View
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -73,7 +74,7 @@ object CustomSourceApp : ClickableFeature(), IResolveDex {
             val controller = thisObject.reflekt().getField("mController", true)!!
             val elements = controller.reflekt().firstField { type = LinkedList::class; superclass() }.get()!! as LinkedList<*>
             elements.last().reflekt().firstField { type = View.OnLongClickListener::class }.set(View.OnLongClickListener { view ->
-                onClick(view.context)
+                showConfigDialog(view.context)
                 return@OnLongClickListener true
             })
         }
@@ -90,12 +91,17 @@ object CustomSourceApp : ClickableFeature(), IResolveDex {
         }
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
+        showConfigDialog(context)
+    }
+
+    fun showConfigDialog(context: Context) {
         showComposeDialog(context) {
             var appIdInput by remember { mutableStateOf(appId) }
             var appNameInput by remember { mutableStateOf(appName) }
 
-            AlertDialogContent(title = { Text("自定义尾巴") },
+            AlertDialogContent(
+                title = { Text("自定义尾巴") },
                 text = {
                     DefaultColumn {
                         OutlinedTextField(
@@ -123,11 +129,13 @@ object CustomSourceApp : ClickableFeature(), IResolveDex {
                     }
                 },
                 dismissButton = { TextButton(onDismiss) { Text("取消") } },
-                confirmButton = { Button(onClick = {
-                    appId = appIdInput
-                    appName = appNameInput
-                    onDismiss()
-                }) { Text("保存") } })
+                confirmButton = {
+                    Button(onClick = {
+                        appId = appIdInput
+                        appName = appNameInput
+                        onDismiss()
+                    }) { Text("保存") }
+                })
         }
     }
 
@@ -157,7 +165,11 @@ object CustomSourceApp : ClickableFeature(), IResolveDex {
                             modifier = Modifier.fillMaxWidth(),
                         )
 
-                        LazyColumn(modifier = Modifier.fillMaxWidth().height(420.dp)) {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(420.dp)
+                        ) {
                             items(filteredApps) { sourceApp ->
                                 ListItem(
                                     headlineContent = { Text(sourceApp.appName) },

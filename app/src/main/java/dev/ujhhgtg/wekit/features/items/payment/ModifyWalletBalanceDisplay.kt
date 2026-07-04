@@ -1,6 +1,6 @@
 package dev.ujhhgtg.wekit.features.items.payment
 
-import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.getValue
@@ -45,7 +45,7 @@ object ModifyWalletBalanceDisplay : ClickableFeature(), IResolveDex {
         }
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             var balanceInput by remember { mutableStateOf(balance ?: "") }
 

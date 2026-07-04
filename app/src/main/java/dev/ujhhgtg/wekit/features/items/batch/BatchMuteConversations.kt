@@ -1,6 +1,7 @@
 package dev.ujhhgtg.wekit.features.items.batch
 
 import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
@@ -33,7 +34,7 @@ object BatchMuteConversations : ClickableFeature() {
 
     override val noSwitchWidget = true
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             AlertDialogContent(
                 title = { Text("批量免打扰") },

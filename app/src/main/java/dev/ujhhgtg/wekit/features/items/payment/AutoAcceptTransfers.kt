@@ -4,6 +4,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -170,7 +171,7 @@ object AutoAcceptTransfers : ClickableFeature(), WeDatabaseListenerApi.IInsertLi
         }
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             var notification by remember { mutableStateOf(transferNotif) }
             var self by remember { mutableStateOf(transferSelf) }

@@ -1,6 +1,7 @@
 package dev.ujhhgtg.wekit.features.items.batch
 
 import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.compose.material3.Text
 import dev.ujhhgtg.comptime.This
 import dev.ujhhgtg.wekit.features.api.core.WeConversationApi
@@ -31,7 +32,7 @@ object BatchDeleteChatHistory : ClickableFeature() {
 
     override val noSwitchWidget = true
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         val contacts = WeDatabaseApi.getFriends() + WeDatabaseApi.getGroups()
 
         showComposeDialog(context) {

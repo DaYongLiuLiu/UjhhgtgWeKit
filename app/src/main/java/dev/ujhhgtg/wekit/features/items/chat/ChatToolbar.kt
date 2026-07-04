@@ -11,6 +11,7 @@ import android.widget.FrameLayout
 import android.widget.GridView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -81,7 +82,7 @@ import dev.ujhhgtg.wekit.preferences.WePrefs
 import dev.ujhhgtg.wekit.ui.content.AlertDialogContent
 import dev.ujhhgtg.wekit.ui.content.Button
 import dev.ujhhgtg.wekit.ui.content.TextButton
-import dev.ujhhgtg.wekit.ui.utils.AppTheme
+import dev.ujhhgtg.wekit.ui.utils.InjectedUiTheme
 import dev.ujhhgtg.wekit.ui.utils.LifecycleOwnerProvider
 import dev.ujhhgtg.wekit.ui.utils.findViewByChildIndexes
 import dev.ujhhgtg.wekit.ui.utils.findViewWhich
@@ -292,7 +293,7 @@ object ChatToolbar : ClickableFeature(), IResolveDex {
                 setLifecycleOwner(lifecycleOwner)
 
                 setContent {
-                    AppTheme {
+                    InjectedUiTheme {
                         DisposableEffect(lifecycleOwner) {
                             val observer = LifecycleEventObserver { _, event ->
                                 when (event) {
@@ -380,7 +381,7 @@ object ChatToolbar : ClickableFeature(), IResolveDex {
         lastConversation = null
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             val currentOrder = remember {
                 normalizeOrder(itemsOrder.split(",").filter { it.isNotEmpty() }).toMutableStateList()

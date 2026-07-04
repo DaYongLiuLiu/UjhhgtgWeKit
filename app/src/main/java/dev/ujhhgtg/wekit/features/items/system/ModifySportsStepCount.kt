@@ -1,6 +1,7 @@
 package dev.ujhhgtg.wekit.features.items.system
 
 import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.getValue
@@ -45,7 +46,7 @@ object ModifySportsStepCount : ClickableFeature(), IResolveDex {
 
     private var stepCount by prefOption("step_count", -1L)
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             var stepCountInput by remember { mutableStateOf(stepCount.toString()) }
 

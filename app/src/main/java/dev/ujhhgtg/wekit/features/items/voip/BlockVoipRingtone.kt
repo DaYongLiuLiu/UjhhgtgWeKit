@@ -1,7 +1,7 @@
 package dev.ujhhgtg.wekit.features.items.voip
 
-import android.content.Context
 import android.os.Bundle
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Switch
@@ -49,7 +49,7 @@ object BlockVoipRingtone : ClickableFeature(), IResolveDex {
         }
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             var outCall by remember { mutableStateOf(disableOutCall) }
             var inCall by remember { mutableStateOf(disableInCall) }

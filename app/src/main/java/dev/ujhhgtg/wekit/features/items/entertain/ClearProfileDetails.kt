@@ -1,6 +1,6 @@
 package dev.ujhhgtg.wekit.features.items.entertain
 
-import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.compose.material3.Text
 import dev.ujhhgtg.comptime.This
 import dev.ujhhgtg.wekit.features.api.net.WePacketHelper
@@ -22,7 +22,7 @@ object ClearProfileDetails : ClickableFeature() {
 
     private val TAG = This.Class.simpleName
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             AlertDialogContent(
                 title = { Text("清空资料信息") },

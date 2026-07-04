@@ -24,12 +24,12 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
-import com.kyant.backdrop.Backdrop
+import top.yukonga.miuix.kmp.blur.Backdrop
 
 /**
  * A [Backdrop] that samples an arbitrary native Android [View] — not the Compose tree.
  *
- * The kyant backdrop effects (blur / lens / vibrancy) apply a `RenderEffect` to a
+ * The miuix-blur backdrop effects (blur / lens / vibrancy) apply a `RenderEffect` to a
  * [GraphicsLayer] whose contents must be recorded *from within Compose*. The built-in
  * `LayerBackdrop` therefore only ever contains Compose-drawn pixels, which is useless when the
  * glass floats as an overlay on top of WeChat's own native views: there is nothing Compose-drawn
@@ -53,7 +53,7 @@ fun rememberViewBackdrop(sourceView: View): ViewBackdrop {
 
     // Ask the glass to re-capture whenever WeChat's own content is about to redraw — a scroll, a
     // tab switch (setCurrentItem scrolls the pager), an incoming message, etc. `bumpVersion` writes
-    // a snapshot state that `drawBackdrop` reads, which is what actually forces the kyant draw node
+    // a snapshot state that `drawBackdrop` reads, which is what actually forces the backdrop draw node
     // to re-run its layer recording; a plain View.invalidate() only recomposites the cached render
     // nodes and would NOT re-run the capture, so a settled static tab froze on its last frame.
     //
@@ -89,13 +89,17 @@ class ViewBackdrop internal constructor(
     internal var layoutDirection: LayoutDirection = LayoutDirection.Ltr
 
     // Bumped whenever the source content redraws. Read inside drawBackdrop so the draw phase
-    // subscribes to it: a change re-runs the kyant draw node's layer recording (and thus our
+    // subscribes to it: a change re-runs the backdrop draw node's layer recording (and thus our
     // recapture) rather than just recompositing stale render nodes.
     private var version by mutableIntStateOf(0)
 
     // Coordinate lookups are done against the source view's window position, so the offset the
     // effect needs doesn't depend on Compose recomposition.
     override val isCoordinatesDependent: Boolean = true
+
+    // We always record at full resolution and never downscale, so no sub-pixel residual to report.
+    override val offsetResidualX: Float = 0f
+    override val offsetResidualY: Float = 0f
 
     internal fun bumpVersion() {
         version++
@@ -133,7 +137,11 @@ class ViewBackdrop internal constructor(
     override fun DrawScope.drawBackdrop(
         density: Density,
         coordinates: LayoutCoordinates?,
-        layerBlock: (GraphicsLayerScope.() -> Unit)?
+        layerBlock: (GraphicsLayerScope.() -> Unit)?,
+        // We record the native view at full resolution and ignore downscaling — miuix passes
+        // downscaleFactor > 1 as a perf hint the LayerBackdrop honors, but our native-View capture
+        // always draws full-res, matching the previous behavior.
+        downscaleFactor: Int,
     ) {
         @Suppress("UNUSED_EXPRESSION") version // subscribe the draw phase to source redraws
         val view = sourceView ?: return

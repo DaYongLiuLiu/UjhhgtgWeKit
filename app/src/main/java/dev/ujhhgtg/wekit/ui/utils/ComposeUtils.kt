@@ -17,6 +17,7 @@ import androidx.core.graphics.drawable.toDrawable
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import dev.ujhhgtg.wekit.ui.utils.theme.ModuleTheme
 
 // useful for showing a compose dialog in non-compose context,
 // or when you don't want to manage the state for a dialog inside a composable
@@ -52,7 +53,7 @@ fun showComposeDialog(
 
                 setContent {
                     CompositionLocalProvider(LocalContext provides context) {
-                        AppTheme {
+                        ModuleTheme {
                             Box(
                                 modifier = Modifier.wrapContentSize(),
                                 contentAlignment = Alignment.Center

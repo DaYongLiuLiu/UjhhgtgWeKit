@@ -2,7 +2,6 @@
 
 package dev.ujhhgtg.wekit.features.items.voip
 
-import android.content.Context
 import android.graphics.ColorSpace
 import android.graphics.SurfaceTexture
 import android.hardware.Camera
@@ -14,6 +13,7 @@ import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
 import android.os.Build
 import android.view.Surface
+import androidx.activity.ComponentActivity
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -93,6 +93,7 @@ object VirtualVoipVideo : ClickableFeature(), IResolveDex {
 
     @Volatile
     private var lastCheckedKey: String? = null
+
     @Volatile
     private var isVideoPortraitCached: Boolean = false
 
@@ -255,8 +256,7 @@ object VirtualVoipVideo : ClickableFeature(), IResolveDex {
                     result = 0
                     WeLogger.i(TAG, "landscape video detected: forcing Camera2 SENSOR_ORIENTATION to 0")
                 }
-            }
-            else if (key == CameraCharacteristics.LENS_FACING) {
+            } else if (key == CameraCharacteristics.LENS_FACING) {
                 WeLogger.i(TAG, "forcing lens facing to BACK")
                 result = CameraCharacteristics.LENS_FACING_BACK
             }
@@ -268,7 +268,7 @@ object VirtualVoipVideo : ClickableFeature(), IResolveDex {
         releasePlayer("disabled")
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             var currentType by remember { mutableStateOf(sourceType) }
             var urlText by remember { mutableStateOf(streamUrl) }
@@ -485,6 +485,7 @@ object VirtualVoipVideo : ClickableFeature(), IResolveDex {
                     }
                 }.let { HijackedArg(it, hijackedOutputs.playbackSurface) }
             }
+
             else -> {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && config is ExtensionSessionConfiguration) {
                     val hijackedOutputs = hijackOutputConfigurations(config.outputConfigurations) ?: return null

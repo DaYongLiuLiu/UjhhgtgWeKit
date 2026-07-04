@@ -9,21 +9,16 @@ import android.view.ViewConfiguration
 import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
-import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.compose.material3.Text
 import dev.ujhhgtg.comptime.This
 import dev.ujhhgtg.reflekt.reflekt
 import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.DexClassDelegate
 import dev.ujhhgtg.wekit.dexkit.dsl.dexClass
 import dev.ujhhgtg.wekit.features.api.core.WeConversationApi
-import dev.ujhhgtg.wekit.features.core.ClickableFeature
 import dev.ujhhgtg.wekit.features.core.Feature
-import dev.ujhhgtg.wekit.ui.content.AlertDialogContent
-import dev.ujhhgtg.wekit.ui.content.DefaultColumn
+import dev.ujhhgtg.wekit.features.core.SwitchFeature
 import dev.ujhhgtg.wekit.ui.utils.dpToPx
-import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.android.runOnUiThread
 import dev.ujhhgtg.wekit.utils.android.showToast
@@ -36,7 +31,7 @@ import kotlin.math.abs
     categories = ["聊天"],
     description = "在主页对话列表向左滑动: 滑一小段松手会停住并露出「隐藏」「删除」按钮; 一次性划到底直接删除\n删除彻底且不可恢复 (无需确认), 隐藏仅从列表移除"
 )
-object SwipeToDeleteConversation : ClickableFeature(), IResolveDex {
+object SwipeToDeleteConversation : SwitchFeature(), IResolveDex {
 
     // Layout / gesture tuning.
     private const val BUTTON_WIDTH_DP = 72        // width of each action button (隐藏 / 删除)
@@ -82,6 +77,7 @@ object SwipeToDeleteConversation : ClickableFeature(), IResolveDex {
         Collections.synchronizedMap(WeakHashMap())
 
     // At most one row is open at a time (iOS behavior). Weak so it can't leak a row view.
+    @SuppressLint("StaticFieldLeak")
     private var openState: SwipeState? = null
 
     private val settleInterpolator = DecelerateInterpolator()
@@ -292,7 +288,7 @@ object SwipeToDeleteConversation : ClickableFeature(), IResolveDex {
     // Rubber-band resistance: linear up to [limit], then heavily damped beyond, so a first swipe can
     // move past the threshold a little but always wants to snap back to it.
     private fun rubberBand(tx: Float, limit: Float): Float {
-        val over = (-tx) - limit
+        val over = -tx - limit
         return if (over <= 0f) tx else -(limit + over * 0.15f)
     }
 
@@ -448,7 +444,7 @@ object SwipeToDeleteConversation : ClickableFeature(), IResolveDex {
     private fun flyOutAndDelete(v: View, s: SwipeState) {
         if (s.flungOut) return
         s.flungOut = true
-        animateTo(s, -(v.width.toFloat())) { onAction(s, delete = true) }
+        animateTo(s, -v.width.toFloat()) { onAction(s, delete = true) }
         if (openState === s) openState = null
     }
 
@@ -479,27 +475,6 @@ object SwipeToDeleteConversation : ClickableFeature(), IResolveDex {
                 showToast("已隐藏")
             }
             if (openState === s) openState = null
-        }
-    }
-
-    // ── config page ────────────────────────────────────────────────────────────
-
-    override fun onClick(context: Context) {
-        showComposeDialog(context) {
-            AlertDialogContent(
-                title = { Text("左划删除对话") },
-                text = {
-                    DefaultColumn {
-                        Text(
-                            "在主页对话列表的对话上向左滑动:\n" +
-                                    "• 滑动一小段松手, 会停住并露出「隐藏」「删除」两个按钮\n" +
-                                    "• 点击「隐藏」仅从列表移除 (重新收到消息会再出现)\n" +
-                                    "• 点击「删除」彻底删除对话 (不可恢复, 无需确认)\n" +
-                                    "• 一次性向左划到底松手, 直接删除该对话"
-                        )
-                    }
-                }
-            )
         }
     }
 }

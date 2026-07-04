@@ -3,6 +3,7 @@ package dev.ujhhgtg.wekit.features.items.chat
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -74,7 +75,7 @@ object FabricateChatHistoryMessage : ClickableFeature() {
 
     override val noSwitchWidget = true
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         val contacts = WeDatabaseApi.getContacts()
 
         showComposeDialog(context) {
@@ -173,7 +174,7 @@ private fun ChatRecordXmlGeneratorDialog(
                     onClick = {
                         val clipboardText = readTextFromClipboard(context)
                         if (clipboardText.isNullOrBlank()) {
-                            showToast(context, "剪贴板为空")
+                            showToast(context, "剪贴板为空!")
                             return@Button
                         }
                         runCatching {

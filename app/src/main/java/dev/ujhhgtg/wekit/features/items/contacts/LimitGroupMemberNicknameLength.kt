@@ -1,12 +1,12 @@
 package dev.ujhhgtg.wekit.features.items.contacts
 
-import android.content.Context
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
 import android.text.style.ReplacementSpan
 import android.view.View
 import android.widget.TextView
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
@@ -47,7 +47,7 @@ object LimitGroupMemberNicknameLength : ClickableFeature(), WeChatMessageViewApi
         WeChatMessageViewApi.removeListener(this)
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             var value by remember { mutableStateOf(maxNicknameLength.toString()) }
 

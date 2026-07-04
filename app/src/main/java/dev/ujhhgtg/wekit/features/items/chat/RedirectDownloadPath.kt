@@ -1,7 +1,7 @@
 package dev.ujhhgtg.wekit.features.items.chat
 
 import android.annotation.SuppressLint
-import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -63,7 +63,7 @@ object RedirectDownloadPath : ClickableFeature(), IResolveDex {
         }
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             var pathInput by remember { mutableStateOf(currentSaveDir()) }
             val normalizedPath = normalizeSaveDir(pathInput)

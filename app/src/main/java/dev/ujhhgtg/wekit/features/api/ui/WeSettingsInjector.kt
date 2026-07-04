@@ -23,13 +23,11 @@ import dev.ujhhgtg.reflekt.utils.toClassOrNull
 import dev.ujhhgtg.wekit.BuildConfig
 import dev.ujhhgtg.wekit.activity.SettingsActivity
 import dev.ujhhgtg.wekit.constants.PackageNames
-import dev.ujhhgtg.wekit.constants.Preferences
 import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexClass
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.features.core.ApiFeature
 import dev.ujhhgtg.wekit.features.core.Feature
-import dev.ujhhgtg.wekit.ui.content.MainSettingsScreen
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.reflection.bool
 import dev.ujhhgtg.wekit.utils.reflection.int
@@ -383,26 +381,15 @@ object WeSettingsInjector : ApiFeature(), IResolveDex, WeChatInputBarApi.IInputB
             mGetPageGroupItemClass, mGetLevel, mOnClick, mGetKey, mGetSettingLocation, mGetNameResId, mGetGroupNameResId, mGetSwitchState, mGetSwitchProperty
         )
 
-        val item1 = settingsManager.createItem {
+        settingsManager.createItem {
             key = "SettingGroup_Main_WeKitTest1"
             title = "WeKit 设置"
             level = 1
             groupTitle = "插件"
             pageClass = SettingGroupMain::class.java
             parentClass = SettingAdditionHeaderSearch::class.java
-            onClick = { openSettingsDialog(it) }
-        }
-
-        settingsManager.createItem {
-            key = "SettingGroup_Main_WeKitTest2"
-            title = "WeKit 设置 (新)"
-            level = 1
-            pageClass = SettingGroupMain::class.java
-            parentClass = item1
             childClass = SettingGroupPersonalInfo::class.java
-            onClick = {
-                it.startActivity(Intent(it, SettingsActivity::class.java))
-            }
+            onClick = { openSettingsDialog(it) }
         }
 //
 //        val item3 = settingsManager.createItem {
@@ -543,10 +530,7 @@ object WeSettingsInjector : ApiFeature(), IResolveDex, WeChatInputBarApi.IInputB
                 .hookBefore {
                     val activity = thisObject as Activity
                     val intent = activity.intent ?: return@hookBefore
-                    val extra = intent.getStringExtra(BuildConfig.TAG) ?: return@hookBefore
-                    if (extra == "2") {
-                        Preferences.useActivityInsteadOfDialog = false
-                    }
+                    intent.getStringExtra(BuildConfig.TAG) ?: return@hookBefore
                     // wait for resources & theme to init
                     Handler(Looper.getMainLooper()).postDelayed({
                         openSettingsDialog(activity)
@@ -556,11 +540,8 @@ object WeSettingsInjector : ApiFeature(), IResolveDex, WeChatInputBarApi.IInputB
             firstMethod { name = "onNewIntent" }
                 .hookBefore {
                     val activity = thisObject as Activity
-                    val intent = args[0] as? Intent? ?: return@hookBefore
-                    val extra = intent.getStringExtra(BuildConfig.TAG) ?: return@hookBefore
-                    if (extra == "2") {
-                        Preferences.useActivityInsteadOfDialog = false
-                    }
+                    val intent = activity.intent ?: return@hookBefore
+                    intent.getStringExtra(BuildConfig.TAG) ?: return@hookBefore
                     openSettingsDialog(activity)
                 }
         }
@@ -568,7 +549,9 @@ object WeSettingsInjector : ApiFeature(), IResolveDex, WeChatInputBarApi.IInputB
 
     @Suppress("NOTHING_TO_INLINE")
     inline fun openSettingsDialog(context: Context) {
-        MainSettingsScreen().show(context)
+        context.startActivity(Intent(context, SettingsActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        })
     }
 
 //    private class SettingsMenuItemClickListener(val context: Context) :

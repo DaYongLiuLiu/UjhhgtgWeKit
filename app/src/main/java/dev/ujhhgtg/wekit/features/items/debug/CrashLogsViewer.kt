@@ -2,6 +2,7 @@ package dev.ujhhgtg.wekit.features.items.debug
 
 import android.content.Context
 import android.content.Intent
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,7 +33,7 @@ import com.composables.icons.materialsymbols.outlined.Content_copy
 import com.composables.icons.materialsymbols.outlined.Delete
 import com.composables.icons.materialsymbols.outlined.Share
 import com.composables.icons.materialsymbols.outlined.Text_snippet
-import dev.ujhhgtg.comptime.nameOf
+import dev.ujhhgtg.comptime.This
 import dev.ujhhgtg.wekit.features.core.ClickableFeature
 import dev.ujhhgtg.wekit.features.core.Feature
 import dev.ujhhgtg.wekit.ui.content.AlertDialogContent
@@ -53,9 +54,9 @@ import kotlin.io.path.name
 @Feature(name = "崩溃日志查看器", categories = ["调试"], description = "查看历史崩溃日志")
 object CrashLogsViewer : ClickableFeature() {
 
-    private val TAG = nameOf(CrashLogsViewer)
+    private val TAG = This.Class.simpleName
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showCrashLogList(context)
     }
 

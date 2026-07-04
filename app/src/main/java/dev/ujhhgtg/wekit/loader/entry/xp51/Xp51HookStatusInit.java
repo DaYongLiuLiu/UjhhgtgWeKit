@@ -12,7 +12,7 @@ public class Xp51HookStatusInit {
 
     @Keep
     public static void init(ClassLoader classLoader) throws ReflectiveOperationException {
-        var kHookStatusImpl = classLoader.loadClass(PackageNames.MODULE + ".utils.featurestatus.featurestatusImpl");
+        var kHookStatusImpl = classLoader.loadClass(PackageNames.MODULE + ".utils.hook_status.HookStatusImpl");
         var f = kHookStatusImpl.getDeclaredField("sZygoteHookMode");
         f.setAccessible(true);
         f.set(null, true);

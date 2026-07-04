@@ -1,6 +1,6 @@
 package dev.ujhhgtg.wekit.features.items.debug
 
-import android.content.Context
+import androidx.activity.ComponentActivity
 import dev.ujhhgtg.comptime.This
 import dev.ujhhgtg.wekit.features.core.ClickableFeature
 import dev.ujhhgtg.wekit.features.core.Feature
@@ -13,6 +13,6 @@ object Experiments : ClickableFeature() {
 
     override val noSwitchWidget = true
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
     }
 }

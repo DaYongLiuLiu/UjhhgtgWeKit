@@ -1,6 +1,6 @@
 package dev.ujhhgtg.wekit.features.core
 
-import android.content.Context
+import androidx.activity.ComponentActivity
 import dev.ujhhgtg.wekit.preferences.WePrefs
 import dev.ujhhgtg.wekit.utils.TargetProcesses
 
@@ -16,5 +16,5 @@ abstract class ClickableFeature : SwitchFeature() {
 
     open val noSwitchWidget = false
 
-    abstract fun onClick(context: Context)
+    abstract fun onClick(context: ComponentActivity)
 }

@@ -1,8 +1,8 @@
 package dev.ujhhgtg.wekit.features.items.chat
 
-import android.content.Context
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Switch
@@ -92,7 +92,7 @@ object HideMessagesAvatars : ClickableFeature(), WeChatMessageViewApi.ICreateVie
         }
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             var incoming by remember { mutableStateOf(hideIncoming) }
             var outgoing by remember { mutableStateOf(hideOutgoing) }

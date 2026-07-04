@@ -3,6 +3,7 @@ package dev.ujhhgtg.wekit.features.items.payment
 import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -303,7 +304,7 @@ object AutoOpenRedPackets : ClickableFeature(), WeDatabaseListenerApi.IInsertLis
         currentRedPacketMap.clear()
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             var notification by remember { mutableStateOf(packetNotif) }
             var self by remember { mutableStateOf(packetSelf) }

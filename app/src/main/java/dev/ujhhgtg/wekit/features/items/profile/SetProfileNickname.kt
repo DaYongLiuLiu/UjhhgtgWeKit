@@ -1,6 +1,6 @@
 package dev.ujhhgtg.wekit.features.items.profile
 
-import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.getValue
@@ -25,7 +25,7 @@ object SetProfileNickname : ClickableFeature() {
 
     private val TAG = This.Class.simpleName
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             var nickname by remember { mutableStateOf("") }
 

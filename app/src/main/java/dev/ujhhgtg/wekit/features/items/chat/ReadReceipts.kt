@@ -1,11 +1,11 @@
 package dev.ujhhgtg.wekit.features.items.chat
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.view.View
 import android.widget.TextView
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
@@ -188,7 +188,7 @@ object ReadReceipts : ClickableFeature(), WeChatMessageViewApi.ICreateViewListen
             val target = WeCurrentConversationApi.value
 
             val xml =
-            """
+                """
             <msg>
               <appmsg appid="" sdkver="0">
                 <title>$escapedText</title>
@@ -290,13 +290,14 @@ object ReadReceipts : ClickableFeature(), WeChatMessageViewApi.ICreateViewListen
 
     // ── Settings dialog ─────────────────────────────────────────────────────────
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             var serverInput by remember { mutableStateOf(server) }
             var prefixInput by remember { mutableStateOf(prefix) }
             var intervalInput by remember { mutableStateOf(pollIntervalSecs.toString()) }
 
-            AlertDialogContent(title = { Text("已读追踪") },
+            AlertDialogContent(
+                title = { Text("已读追踪") },
                 text = {
                     DefaultColumn {
                         TextField(
@@ -321,27 +322,29 @@ object ReadReceipts : ClickableFeature(), WeChatMessageViewApi.ICreateViewListen
                     }
                 },
                 dismissButton = { TextButton(onDismiss) { Text("取消") } },
-                confirmButton = { Button(onClick = {
-                    if (serverInput.isBlank()) {
-                        showToast(context, "错误: 未设置服务器!")
-                        return@Button
-                    }
-                    server = serverInput
+                confirmButton = {
+                    Button(onClick = {
+                        if (serverInput.isBlank()) {
+                            showToast(context, "错误: 未设置服务器!")
+                            return@Button
+                        }
+                        server = serverInput
 
-                    if (prefixInput.isEmpty()) {
-                        showToast(context, "警告: 「触发前缀」为空, 所有文本消息将启用已读追踪!")
-                    }
-                    prefix = prefixInput
+                        if (prefixInput.isEmpty()) {
+                            showToast(context, "警告: 「触发前缀」为空, 所有文本消息将启用已读追踪!")
+                        }
+                        prefix = prefixInput
 
-                    val interval = intervalInput.toIntOrNull()
-                    if (interval == null || interval <= 0) {
-                        showToast(context, "错误: 轮询间隔格式不正确!")
-                        return@Button
-                    }
-                    pollIntervalSecs = interval
+                        val interval = intervalInput.toIntOrNull()
+                        if (interval == null || interval <= 0) {
+                            showToast(context, "错误: 轮询间隔格式不正确!")
+                            return@Button
+                        }
+                        pollIntervalSecs = interval
 
-                    onDismiss()
-                }) { Text("确定") } })
+                        onDismiss()
+                    }) { Text("确定") }
+                })
         }
     }
 }

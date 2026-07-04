@@ -3,6 +3,7 @@ package dev.ujhhgtg.wekit.features.items.beautify
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import androidx.activity.ComponentActivity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.EaseIn
 import androidx.compose.animation.core.EaseInCubic
@@ -64,6 +65,7 @@ import com.composables.icons.materialsymbols.outlinedfilled.Update
 import com.composables.icons.materialsymbols.outlinedfilled.Wallet
 import dev.ujhhgtg.comptime.This
 import dev.ujhhgtg.reflekt.reflekt
+import dev.ujhhgtg.wekit.activity.SettingsActivity
 import dev.ujhhgtg.wekit.features.api.core.WeConversationApi
 import dev.ujhhgtg.wekit.features.api.ui.WeMainActivityBeautifyApi
 import dev.ujhhgtg.wekit.features.core.ClickableFeature
@@ -71,19 +73,18 @@ import dev.ujhhgtg.wekit.features.core.Feature
 import dev.ujhhgtg.wekit.preferences.WePrefs
 import dev.ujhhgtg.wekit.ui.content.AlertDialogContent
 import dev.ujhhgtg.wekit.ui.content.DefaultColumn
-import dev.ujhhgtg.wekit.ui.content.MainSettingsScreen
 import dev.ujhhgtg.wekit.ui.content.TextButton
-import dev.ujhhgtg.wekit.ui.utils.AppTheme
+import dev.ujhhgtg.wekit.ui.utils.InjectedUiTheme
 import dev.ujhhgtg.wekit.ui.utils.LifecycleOwnerProvider
 import dev.ujhhgtg.wekit.ui.utils.rootView
 import dev.ujhhgtg.wekit.ui.utils.setLifecycleOwner
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.android.showToast
+import dev.ujhhgtg.wekit.utils.killHost
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.util.UUID
-import kotlin.system.exitProcess
 
 @Feature(name = "主屏幕添加 FAB", categories = ["界面美化"], description = "向微信主屏幕添加浮动操作按钮")
 object AddMainScreenFab : ClickableFeature() {
@@ -192,17 +193,24 @@ object AddMainScreenFab : ClickableFeature() {
                     FabType.START_ACTIVITY -> {
                         { item.targetActivity?.let { startActivityByName(activity, it) } }
                     }
+
                     FabType.MARK_ALL_READ -> {
                         {
                             WeConversationApi.markAllAsRead()
                             showToast("已将全部未读消息标为已读")
                         }
                     }
+
                     FabType.MODULE_SETTINGS -> {
-                        { MainSettingsScreen().show(activity) }
+                        {
+                            activity.startActivity(Intent(activity, SettingsActivity::class.java).apply {
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            })
+                        }
                     }
+
                     FabType.FORCE_STOP -> {
-                        { exitProcess(0) }
+                        { killHost() }
                     }
                 }
                 menuItems[item.name] = icon to action
@@ -216,7 +224,7 @@ object AddMainScreenFab : ClickableFeature() {
                     setLifecycleOwner(lifecycleOwner)
 
                     setContent {
-                        AppTheme {
+                        InjectedUiTheme {
                             val backgroundColor = if (isSystemInDarkTheme()) Color(0xFF191919) else Color(0xFFF7F7F7)
                             val activeColor = MaterialTheme.colorScheme.primary
 
@@ -315,7 +323,7 @@ object AddMainScreenFab : ClickableFeature() {
     }
 
     // 实现配置弹窗后台逻辑
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             var currentItems by remember { mutableStateOf(loadConfig()) }
             var showAddSection by remember { mutableStateOf(false) }
@@ -384,7 +392,9 @@ object AddMainScreenFab : ClickableFeature() {
                                 value = newName,
                                 onValueChange = { newName = it },
                                 label = { Text("显示按钮文本名称") },
-                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp)
                             )
 
                             if (newType == FabType.START_ACTIVITY) {
@@ -392,7 +402,9 @@ object AddMainScreenFab : ClickableFeature() {
                                     value = newActivity,
                                     onValueChange = { newActivity = it },
                                     label = { Text("Activity 完整类名") },
-                                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 8.dp)
                                 )
 
                                 Text(
@@ -420,7 +432,9 @@ object AddMainScreenFab : ClickableFeature() {
                             }
 
                             Text("选择展示图标:", fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
-                            Row(modifier = Modifier.horizontalScroll(rememberScrollState()).padding(vertical = 6.dp)) {
+                            Row(modifier = Modifier
+                                .horizontalScroll(rememberScrollState())
+                                .padding(vertical = 6.dp)) {
                                 iconPool.keys.forEach { iconName ->
                                     val isSelected = newIconName == iconName
                                     Box(
@@ -438,7 +452,9 @@ object AddMainScreenFab : ClickableFeature() {
                                 }
                             }
 
-                            Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
+                            Row(horizontalArrangement = Arrangement.End, modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 16.dp)) {
                                 TextButton({ showAddSection = false }) { Text("返回列表") }
                                 TextButton({
                                     if (newName.isNotBlank() && (newType != FabType.START_ACTIVITY || newActivity.isNotBlank())) {
@@ -482,7 +498,9 @@ object AddMainScreenFab : ClickableFeature() {
                                 }
                                 currentItems.forEachIndexed { index, item ->
                                     Row(
-                                        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 6.dp),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Icon(

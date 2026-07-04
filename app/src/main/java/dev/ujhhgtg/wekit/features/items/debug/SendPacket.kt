@@ -1,13 +1,13 @@
 package dev.ujhhgtg.wekit.features.items.debug
 
-import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import dev.ujhhgtg.comptime.nameOf
+import dev.ujhhgtg.comptime.This
 import dev.ujhhgtg.wekit.features.api.net.WePacketHelper
 import dev.ujhhgtg.wekit.features.api.net.WeProtoData
 import dev.ujhhgtg.wekit.features.core.ClickableFeature
@@ -21,9 +21,9 @@ import dev.ujhhgtg.wekit.utils.android.showToast
 
 @Feature(name = "发包调试", categories = ["调试"], description = "发送自定义数据包到微信服务器")
 object SendPacket : ClickableFeature() {
-    private val TAG = nameOf(SendPacket)
+    private val TAG = This.Class.simpleName
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             var uri by remember { mutableStateOf("/cgi-bin/micromsg-bin/oplog") }
             var cmdIdStr by remember { mutableStateOf("681") }

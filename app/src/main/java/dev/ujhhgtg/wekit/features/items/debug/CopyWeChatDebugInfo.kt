@@ -1,10 +1,11 @@
 package dev.ujhhgtg.wekit.features.items.debug
 
-import android.content.Context
 import android.view.View
 import android.widget.TextView
-import dev.ujhhgtg.reflekt.utils.createInstance
+import androidx.activity.ComponentActivity
 import com.tencent.mm.plugin.setting.ui.setting.SettingsAboutMMHeaderPreference
+import dev.ujhhgtg.reflekt.reflekt
+import dev.ujhhgtg.reflekt.utils.createInstance
 import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.features.core.ClickableFeature
@@ -12,14 +13,13 @@ import dev.ujhhgtg.wekit.features.core.Feature
 import dev.ujhhgtg.wekit.utils.android.copyToClipboard
 import dev.ujhhgtg.wekit.utils.android.showToast
 import dev.ujhhgtg.wekit.utils.hookBeforeDirectly
-import dev.ujhhgtg.reflekt.reflekt
 
 @Feature(name = "复制调试信息", categories = ["调试"], description = "在报告模块问题时, 请附上本功能的结果")
 object CopyWeChatDebugInfo : ClickableFeature(), IResolveDex {
 
     override val noSwitchWidget = true
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         val unhook = TextView::class.reflekt()
             .firstMethod {
                 name = "setText"

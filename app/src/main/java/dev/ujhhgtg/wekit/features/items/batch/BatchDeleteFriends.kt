@@ -1,6 +1,7 @@
 package dev.ujhhgtg.wekit.features.items.batch
 
 import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.compose.material3.Text
 import dev.ujhhgtg.comptime.This
 import dev.ujhhgtg.wekit.features.api.core.WeContactApi
@@ -34,7 +35,7 @@ object BatchDeleteFriends : ClickableFeature() {
     /** Space out deletions to avoid WeChat's server-side rate limiting. */
     private const val DELETE_INTERVAL_MS = 1500L
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         val friends = WeDatabaseApi.getFriends()
 
         showComposeDialog(context) {

@@ -1,6 +1,6 @@
 package dev.ujhhgtg.wekit.features.items.debug
 
-import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Switch
@@ -10,9 +10,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import dev.ujhhgtg.reflekt.utils.Modifiers
 import com.tencent.mars.xlog.Log
 import dev.ujhhgtg.comptime.nameOf
+import dev.ujhhgtg.reflekt.reflekt
+import dev.ujhhgtg.reflekt.utils.Modifiers
 import dev.ujhhgtg.wekit.features.core.ClickableFeature
 import dev.ujhhgtg.wekit.features.core.Feature
 import dev.ujhhgtg.wekit.preferences.WePrefs
@@ -22,7 +23,6 @@ import dev.ujhhgtg.wekit.ui.content.Button
 import dev.ujhhgtg.wekit.ui.content.DefaultColumn
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.WeLogger
-import dev.ujhhgtg.reflekt.reflekt
 
 @Feature(name = "重定向微信日志", categories = ["调试"], description = "将微信内部日志打印至模块日志")
 object RedirectHostLogs : ClickableFeature() {
@@ -104,9 +104,8 @@ object RedirectHostLogs : ClickableFeature() {
         }
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
-
             AlertDialogContent(
                 title = { Text("重定向微信日志") },
                 text = {

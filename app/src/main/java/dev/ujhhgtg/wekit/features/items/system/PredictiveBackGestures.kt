@@ -2,12 +2,12 @@ package dev.ujhhgtg.wekit.features.items.system
 
 import android.app.Activity
 import android.app.ActivityThread
-import android.content.Context
 import android.content.pm.ActivityInfo
 import android.content.pm.ApplicationInfo
 import android.os.Build
 import android.window.OnBackInvokedCallback
 import android.window.OnBackInvokedDispatcher
+import androidx.activity.ComponentActivity
 import androidx.annotation.RequiresApi
 import androidx.compose.material3.Text
 import com.tencent.mm.ui.LauncherUI
@@ -156,7 +156,7 @@ object PredictiveBackGestures : ClickableFeature(), IResolveDex {
         }
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             AlertDialogContent(
                 title = { Text("预见性返回动画") },

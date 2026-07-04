@@ -45,7 +45,6 @@
 - Process targeting via `TargetProcesses`: override `startup()` to check
   `TargetProcesses.isInMain` / `TargetProcesses.currentType`. Default: main process only.
 - No unit tests — manual testing on real WeChat only
-- Use the library `KavaRef` for Java reflection if possible. Use `KavaRefUtils` as an entry point to it for clearer semantics. KavaRef
 - If `JsApiExposer` (`hooks/items/scripting_js/JsApiExposer.kt`) is modified, keep `globals.d.ts` in
   the same directory in sync — it's the TypeScript type declaration for the JS scripting API
 - NEVER wrap `hookBefore` and `hookAfter` in a `try-catch`/`runCatching` block. They should NOT fail. If they fail, then it's the module developer's problem.

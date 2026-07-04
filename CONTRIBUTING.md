@@ -68,8 +68,8 @@
 1. **Android Studio**: Ladybug | 2024.2.1 或更高版本
 2. **JDK**: JDK 21
 3. **Android SDK**:
-   - Compile SDK: 37
-   - Build Tools: 最新版本
+    - Compile SDK: 37
+    - Build Tools: 最新版本
 4. **NDK**: 最新版本 (用于 Rust 编译)
 5. **Rust**: 最新版本
 
@@ -1025,12 +1025,12 @@ override fun onBeforeToggle(newState: Boolean, context: Context): Boolean {
 
 根据功能类型选择合适的基类：
 
-| 基类 | 核心特点 | 使用场景                            |
-|------|---------|---------------------------------|
-| `SwitchFeature` | 带开关的功能<br/>**自动管理加载/卸载生命周期**<br/>支持 `beforeIfEnabled`/`afterIfEnabled`<br/> | 需要用户手动启用/禁用的功能<br/>如：防撤回等       |
+| 基类                 | 核心特点                                                                                                                                           | 使用场景                                  |
+|--------------------|------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------|
+| `SwitchFeature`    | 带开关的功能<br/>**自动管理加载/卸载生命周期**<br/>支持 `beforeIfEnabled`/`afterIfEnabled`<br/>                                                                    | 需要用户手动启用/禁用的功能<br/>如：防撤回等             |
 | `ClickableFeature` | 可点击的功能<br/>**自动管理加载/卸载生命周期**<br/>支持 `beforeIfEnabled`/`afterIfEnabled`<br/>**必须重写 `onClick(Context)` 方法**<br/>默认显示开关，可通过 `noSwitchWidget()` 隐藏 | 需要配置界面的功能（点击打开配置）<br/>或纯工具类功能（点击执行操作） |
-| `ApiFeature` | 底层 API 服务<br/>总是运行，不受用户控制<br/>无 `enabled` 状态 | 为其他功能提供基础服务<br/>如：数据库监听、网络 API 封装 |
-| `BaseFeature` | 所有 Hook 的抽象基类<br/>其他基类都继承自它 | 请勿直接使用                          |
+| `ApiFeature`       | 底层 API 服务<br/>总是运行，不受用户控制<br/>无 `enabled` 状态                                                                                                   | 为其他功能提供基础服务<br/>如：数据库监听、网络 API 封装     |
+| `BaseFeature`      | 所有 Hook 的抽象基类<br/>其他基类都继承自它                                                                                                                    | 请勿直接使用                                |
 
 **快速选择指南**:
 
@@ -1041,14 +1041,14 @@ override fun onBeforeToggle(newState: Boolean, context: Context): Boolean {
 
 **两个主要基类的核心区别**:
 
-| 对比项 | `SwitchFeature` | `ClickableFeature` |
-|-------|----------------------------|-------------------------------|
-| **生命周期管理** | ✅ 自动管理 | ✅ 自动管理 |
-| **开关状态** | ✅ 有 `enabled` | ✅ 有 `enabled` |
-| **DSL 支持** | ✅ `beforeIfEnabled`/`afterIfEnabled` | ✅ `beforeIfEnabled`/`afterIfEnabled` |
-| **切换前确认** | ✅ `onBeforeToggle(newState, context)` | ✅ `onBeforeToggle(newState, context)` |
-| **点击处理** | 点击切换开关 | **`onClick(Context)` 必须重写** |
-| **主要用途** | 主要用于 Hook 功能 | 主要用于需要点击交互的功能 |
+| 对比项        | `SwitchFeature`                       | `ClickableFeature`                    |
+|------------|---------------------------------------|---------------------------------------|
+| **生命周期管理** | ✅ 自动管理                                | ✅ 自动管理                                |
+| **开关状态**   | ✅ 有 `enabled`                         | ✅ 有 `enabled`                         |
+| **DSL 支持** | ✅ `beforeIfEnabled`/`afterIfEnabled`  | ✅ `beforeIfEnabled`/`afterIfEnabled`  |
+| **切换前确认**  | ✅ `onBeforeToggle(newState, context)` | ✅ `onBeforeToggle(newState, context)` |
+| **点击处理**   | 点击切换开关                                | **`onClick(Context)` 必须重写**           |
+| **主要用途**   | 主要用于 Hook 功能                          | 主要用于需要点击交互的功能                         |
 
 ### 功能放置位置
 
@@ -1134,50 +1134,50 @@ object ToolsProcessFeature : SwitchFeature() {
 
 #### 进程说明
 
-| 进程常量 | 进程标识 |
-|---------|---------|
-| `PROC_MAIN` | `com.tencent.mm` |
-| `PROC_PUSH` | `:push` |
-| `PROC_APPBRAND` | `:appbrand0` ~ `:appbrand4` |
-| `PROC_TOOLS` | `:tools`, `:toolsmp` |
-| `PROC_SANDBOX` | `:sandbox` |
-| `PROC_HOTPOT` | `:hotpot..` |
-| `PROC_EXDEVICE` | `:exdevice` |
-| `PROC_SUPPORT` | `:support` |
-| `PROC_CUPLOADER` | `:cuploader` |
-| `PROC_PATCH` | `:patch` |
-| `PROC_FALLBACK` | `:fallback` |
-| `PROC_DEXOPT` | `:dexopt` |
-| `PROC_RECOVERY` | `:recovery` |
-| `PROC_NOSPACE` | `:nospace` |
-| `PROC_JECTL` | `:jectl` |
-| `PROC_OPENGL_DETECTOR` | `:opengl_detector` |
-| `PROC_RUBBISHBIN` | `:rubbishbin` |
-| `PROC_ISOLATED` | `:isolated_process0`, `:isolated_process1` |
-| `PROC_RES_CAN_WORKER` | `:res_can_worker` |
-| `PROC_EXTMIG` | `:extmig` |
-| `PROC_BACKTRACE` | `:backtrace__` |
-| `PROC_TMASSISTANT` | `:TMAssistantDownloadSDKService` |
-| `PROC_SWITCH` | `:switch` |
-| `PROC_HLD` | `:hld` |
-| `PROC_PLAYCORE` | `:playcore_missing_splits_activity` |
-| `PROC_HLDFL` | `:hldfl` |
-| `PROC_MAGIC_EMOJI` | `:magic_emoji` |
-| `PROC_OTHERS` | 其他未知进程 |
+| 进程常量                   | 进程标识                                       |
+|------------------------|--------------------------------------------|
+| `PROC_MAIN`            | `com.tencent.mm`                           |
+| `PROC_PUSH`            | `:push`                                    |
+| `PROC_APPBRAND`        | `:appbrand0` ~ `:appbrand4`                |
+| `PROC_TOOLS`           | `:tools`, `:toolsmp`                       |
+| `PROC_SANDBOX`         | `:sandbox`                                 |
+| `PROC_HOTPOT`          | `:hotpot..`                                |
+| `PROC_EXDEVICE`        | `:exdevice`                                |
+| `PROC_SUPPORT`         | `:support`                                 |
+| `PROC_CUPLOADER`       | `:cuploader`                               |
+| `PROC_PATCH`           | `:patch`                                   |
+| `PROC_FALLBACK`        | `:fallback`                                |
+| `PROC_DEXOPT`          | `:dexopt`                                  |
+| `PROC_RECOVERY`        | `:recovery`                                |
+| `PROC_NOSPACE`         | `:nospace`                                 |
+| `PROC_JECTL`           | `:jectl`                                   |
+| `PROC_OPENGL_DETECTOR` | `:opengl_detector`                         |
+| `PROC_RUBBISHBIN`      | `:rubbishbin`                              |
+| `PROC_ISOLATED`        | `:isolated_process0`, `:isolated_process1` |
+| `PROC_RES_CAN_WORKER`  | `:res_can_worker`                          |
+| `PROC_EXTMIG`          | `:extmig`                                  |
+| `PROC_BACKTRACE`       | `:backtrace__`                             |
+| `PROC_TMASSISTANT`     | `:TMAssistantDownloadSDKService`           |
+| `PROC_SWITCH`          | `:switch`                                  |
+| `PROC_HLD`             | `:hld`                                     |
+| `PROC_PLAYCORE`        | `:playcore_missing_splits_activity`        |
+| `PROC_HLDFL`           | `:hldfl`                                   |
+| `PROC_MAGIC_EMOJI`     | `:magic_emoji`                             |
+| `PROC_OTHERS`          | 其他未知进程                                     |
 
 #### 最佳实践
 
 1. **默认使用主进程**
-   - 大多数功能应该在主进程中运行
-   - 如果不重写 `startup()`，默认仅在 `PROC_MAIN` 运行
+    - 大多数功能应该在主进程中运行
+    - 如果不重写 `startup()`，默认仅在 `PROC_MAIN` 运行
 
 2. **根据需要选择进程**
-   - 根据功能特性选择合适的进程
-   - 可以组合多个进程
+    - 根据功能特性选择合适的进程
+    - 可以组合多个进程
 
 3. **避免不必要的多进程 Hook**
-   - 只在必要的进程中运行 Hook，避免资源浪费
-   - 明确指定需要的进程
+    - 只在必要的进程中运行 Hook，避免资源浪费
+    - 明确指定需要的进程
 
 4. **进程判断**
 
@@ -1528,11 +1528,11 @@ interface IWePkgInterceptor {
 
 #### 参数说明
 
-| 参数 | 类型 | 说明 |
-|------|------|------|
-| `uri` | String | 网络请求的 URI 地址，用于识别请求类型 |
-| `cgiId` | Int | CGI 命令 ID，微信内部的接口标识符 |
-| `reqBytes` / `respBytes` | ByteArray | Protobuf 编码的原始字节数据 |
+| 参数                       | 类型        | 说明                    |
+|--------------------------|-----------|-----------------------|
+| `uri`                    | String    | 网络请求的 URI 地址，用于识别请求类型 |
+| `cgiId`                  | Int       | CGI 命令 ID，微信内部的接口标识符  |
+| `reqBytes` / `respBytes` | ByteArray | Protobuf 编码的原始字节数据    |
 
 **返回值**：
 
@@ -1640,11 +1640,11 @@ override fun onUnload(classLoader: ClassLoader) {
 
 #### 方法说明
 
-| 方法 | 时机 | 返回值 | 作用 |
-|------|------|--------|------|
-| `onInsert` | 插入后 | - | 监听/修改插入数据 |
-| `onUpdate` | 更新前 | `true`=阻止 | 监听/阻止更新 |
-| `onQuery` | 查询前 | 新SQL/null | 篡改查询语句 |
+| 方法         | 时机  | 返回值       | 作用        |
+|------------|-----|-----------|-----------|
+| `onInsert` | 插入后 | -         | 监听/修改插入数据 |
+| `onUpdate` | 更新前 | `true`=阻止 | 监听/阻止更新   |
+| `onQuery`  | 查询前 | 新SQL/null | 篡改查询语句    |
 
 #### 特性
 
@@ -1825,7 +1825,7 @@ class HookQueryCashierPkg : ClickableFeature(), IWePkgInterceptor {
         WePkgManager.removeInterceptor(this)
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: Activity) {
         context?.let { ConfigDialog(it).show() }
     }
 }
@@ -2024,18 +2024,18 @@ WeLogger.d("Count", 123L)
 #### WeLogger 核心特性
 
 1. **统一 TAG 管理**
-   - 自动使用 `BuildConfig.TAG` 作为统一标签
-   - 便于通过 `adb logcat | grep "WeKit"` 过滤日志
+    - 自动使用 `BuildConfig.TAG` 作为统一标签
+    - 便于通过 `adb logcat | grep "WeKit"` 过滤日志
 
 2. **日志持久化**
-   - 自动将日志保存到本地文件
-   - 错误日志通过 `LogUtils.addError()` 持久化
-   - 运行日志通过 `LogUtils.addRunLog()` 持久化
-   - 方便用户反馈问题时提供日志
+    - 自动将日志保存到本地文件
+    - 错误日志通过 `LogUtils.addError()` 持久化
+    - 运行日志通过 `LogUtils.addRunLog()` 持久化
+    - 方便用户反馈问题时提供日志
 
 3. **异常安全**
-   - 自动捕获 `ExceptionInInitializerError` 和 `NoClassDefFoundError`
-   - 防止日志系统本身导致崩溃
+    - 自动捕获 `ExceptionInInitializerError` 和 `NoClassDefFoundError`
+    - 防止日志系统本身导致崩溃
 
 4. **多种重载方法**
 
@@ -2105,13 +2105,13 @@ class MyFeature : SwitchFeature() {
 
 #### 日志级别使用指南
 
-| 级别 | 方法 | 使用场景 |
-|------|------|----------|
-| **ERROR** | `WeLogger.e()` | 错误、异常、Hook 失败 |
-| **WARN** | `WeLogger.w()` | 警告、潜在问题、降级处理 |
-| **INFO** | `WeLogger.i()` | 重要信息、功能启用/禁用、关键操作 |
-| **DEBUG** | `WeLogger.d()` | 调试信息、详细执行流程 |
-| **VERBOSE** | `WeLogger.v()` | 详细的调试信息（谨慎使用） |
+| 级别          | 方法             | 使用场景              |
+|-------------|----------------|-------------------|
+| **ERROR**   | `WeLogger.e()` | 错误、异常、Hook 失败     |
+| **WARN**    | `WeLogger.w()` | 警告、潜在问题、降级处理      |
+| **INFO**    | `WeLogger.i()` | 重要信息、功能启用/禁用、关键操作 |
+| **DEBUG**   | `WeLogger.d()` | 调试信息、详细执行流程       |
+| **VERBOSE** | `WeLogger.v()` | 详细的调试信息（谨慎使用）     |
 
 #### 注意事项
 
@@ -2381,10 +2381,10 @@ feat(hook): add anti-revoke message feature
 
 ##### 类型 / Type
 
-- [ ] Bug 修复 / Bug Fix  
-- [ ] 新功能 / New Feature  
-- [ ] 文档更新 / Documentation Update  
-- [ ] 其他（请描述）/ Other (please describe):  
+- [ ] Bug 修复 / Bug Fix
+- [ ] 新功能 / New Feature
+- [ ] 文档更新 / Documentation Update
+- [ ] 其他（请描述）/ Other (please describe):
 
 ##### 修复或解决的问题 / Issues Fixed or Closed by This PR
 
@@ -2397,7 +2397,7 @@ close #1
 - [ ] 我已更新相关文档或注释（如适用） / I have updated relevant documentation or comments (if applicable)
 - [ ] **我确认此更改不会破坏任何原有功能** / I confirm this change does not break any existing features
 - [ ] **我已进行多版本适配（如适用）** / I have used MMVersion for version compatibility (if applicable)
-- [ ] **我已在多个微信版本上测试此更改（如适用）** / I have tested this change on multiple WeChat versions (if applicable)  
+- [ ] **我已在多个微信版本上测试此更改（如适用）** / I have tested this change on multiple WeChat versions (if applicable)
 - [ ] **已在 Release 构建中完成测试** / Verified in Release build
 
 ##### 其他信息 / Additional Information

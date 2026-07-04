@@ -35,6 +35,7 @@ import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.android.copyToClipboard
 import dev.ujhhgtg.wekit.utils.android.showToast
 import dev.ujhhgtg.wekit.utils.reflection.DexKit
+import dev.ujhhgtg.wekit.utils.restartHost
 import dev.ujhhgtg.wekit.utils.unreachable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -48,7 +49,6 @@ import kotlinx.coroutines.launch
 import org.luckypray.dexkit.DexKitBridge
 import java.io.PrintWriter
 import java.io.StringWriter
-import kotlin.system.exitProcess
 
 private sealed class ScanProgress {
     data class Start(val displayName: String) : ScanProgress()
@@ -272,7 +272,7 @@ fun DexResolver(
                 if (phase is DialogPhase.Done || phase is DialogPhase.Error) {
                     Button(onClick = {
                         dismiss()
-                        exitProcess(0)
+                        restartHost()
                     }) { Text("重启微信") }
                 }
             }

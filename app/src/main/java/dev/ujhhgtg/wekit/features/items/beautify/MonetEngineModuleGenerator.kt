@@ -34,7 +34,7 @@
 //)
 //object MonetEngineModuleGenerator : ClickableFeature() {
 //
-//    override fun onClick(context: Context) {
+//    override fun onClick(context: Activity) {
 //        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
 //            showComposeDialog(context) {
 //                AlertDialogContent(

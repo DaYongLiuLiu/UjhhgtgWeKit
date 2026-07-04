@@ -1,7 +1,7 @@
 package dev.ujhhgtg.wekit.features.items.contacts
 
 import android.app.Activity
-import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -72,7 +72,7 @@ object AutoRemarkNewFriends : ClickableFeature() {
         }
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             var displayFormatInput by remember { mutableStateOf(TextFieldValue(textFormat)) }
             var timeFormat by remember { mutableStateOf(timeFormat) }
@@ -110,7 +110,9 @@ object AutoRemarkNewFriends : ClickableFeature() {
                         FlowRow(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
                         ) {
                             val placeholders = listOf(
                                 $$"$nickname",

@@ -1,6 +1,6 @@
 package dev.ujhhgtg.wekit.features.items.debug
 
-import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.getValue
@@ -23,7 +23,7 @@ object LaunchInternalUrls : ClickableFeature(), IResolveDex {
 
     override val noSwitchWidget = true
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             var url by remember { mutableStateOf("weixin://") }
             var argsInput by remember { mutableStateOf("") }

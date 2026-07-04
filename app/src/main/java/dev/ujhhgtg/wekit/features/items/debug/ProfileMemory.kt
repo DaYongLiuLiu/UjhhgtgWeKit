@@ -1,8 +1,8 @@
 package dev.ujhhgtg.wekit.features.items.debug
 
-import android.content.Context
 import android.os.Debug
 import android.os.Process
+import androidx.activity.ComponentActivity
 import dev.ujhhgtg.comptime.nameOf
 import dev.ujhhgtg.wekit.features.core.ClickableFeature
 import dev.ujhhgtg.wekit.features.core.Feature
@@ -15,7 +15,7 @@ object ProfileMemory : ClickableFeature() {
 
     override val noSwitchWidget = true
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         logMemorySnapshot()
     }
 

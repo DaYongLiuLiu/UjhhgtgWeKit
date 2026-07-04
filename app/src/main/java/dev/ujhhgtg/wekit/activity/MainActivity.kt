@@ -7,6 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,7 +25,9 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -54,9 +57,10 @@ import dev.ujhhgtg.wekit.ui.content.Button
 import dev.ujhhgtg.wekit.ui.content.DefaultColumn
 import dev.ujhhgtg.wekit.ui.content.IconButton
 import dev.ujhhgtg.wekit.ui.content.TextButton
-import dev.ujhhgtg.wekit.ui.utils.AppTheme
 import dev.ujhhgtg.wekit.ui.utils.GitHubIcon
 import dev.ujhhgtg.wekit.ui.utils.TelegramIcon
+import dev.ujhhgtg.wekit.ui.utils.theme.darkScheme
+import dev.ujhhgtg.wekit.ui.utils.theme.lightScheme
 import dev.ujhhgtg.wekit.utils.android.Intent
 import dev.ujhhgtg.wekit.utils.android.androidUserId
 import dev.ujhhgtg.wekit.utils.android.getEnabled
@@ -82,6 +86,20 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @Composable
+    private fun ModuleTheme(
+        darkTheme: Boolean = isSystemInDarkTheme(),
+        content: @Composable () -> Unit
+    ) {
+        val colorScheme = if (darkTheme) darkScheme else lightScheme
+        MaterialExpressiveTheme(
+            colorScheme = colorScheme,
+            motionScheme = MotionScheme.expressive(),
+        ) {
+            content()
+        }
+    }
+
     private val selectFileLauncher = registerBshSnapshotDecompileLaunchers()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -92,7 +110,7 @@ class MainActivity : ComponentActivity() {
         Shell.getShell()
 
         setContent {
-            AppTheme {
+            ModuleTheme {
                 AppContent(
                     selectFileLauncher,
                     onUrlClick = { url ->
@@ -401,50 +419,6 @@ class MainActivity : ComponentActivity() {
                             )
                             Text(
                                 text = "打开微信内的模块设置",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
-
-                ElevatedCard(
-                    onClick = {
-                        val hostPkg =
-                            prefs.getString("host_pkg_name", PackageNames.WECHAT)!!
-                        try {
-                            startActivity(Intent {
-                                setClassName(hostPkg, "${PackageNames.WECHAT}.ui.LauncherUI")
-                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                putExtra(BuildConfig.TAG, "2")
-                            })
-                            isLaunchingWeChat = true
-                        } catch (e: Exception) {
-                            shortcutError = e.message
-                                ?: "无法打开微信 (包名: $hostPkg)"
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = MaterialSymbols.Outlined.Settings,
-                            contentDescription = null,
-                            modifier = Modifier.size(24.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column {
-                            Text(
-                                text = "打开模块设置 (强制非全屏 UI)",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Text(
-                                text = "如果一打开模块设置就闪退那就用这个",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )

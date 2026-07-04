@@ -1,6 +1,6 @@
 package dev.ujhhgtg.wekit.features.items.system
 
-import android.content.Context
+import androidx.activity.ComponentActivity
 import dev.ujhhgtg.comptime.This
 import dev.ujhhgtg.wekit.features.core.ClickableFeature
 import dev.ujhhgtg.wekit.features.core.Feature
@@ -101,7 +101,7 @@ object AutoCleanCache : ClickableFeature() {
         return size
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         scope.launch {
             val deletedSize = performClean()
             val sizeText = formatBytesSize(deletedSize)

@@ -1,6 +1,7 @@
 package dev.ujhhgtg.wekit.features.items.chat
 
 import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -49,7 +50,7 @@ object AddToAggregationFolder : ClickableFeature(), WeConversationContextMenuApi
         WeConversationContextMenuApi.removeProvider(this)
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             var showConfigInput by remember { mutableStateOf(showConfigDialog) }
             AlertDialogContent(

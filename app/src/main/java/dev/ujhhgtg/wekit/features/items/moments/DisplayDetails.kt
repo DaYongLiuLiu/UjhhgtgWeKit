@@ -1,11 +1,11 @@
 package dev.ujhhgtg.wekit.features.items.moments
 
 import android.app.Activity
-import android.content.Context
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.ListItem
@@ -74,13 +74,15 @@ object DisplayDetails : ClickableFeature(), IResolveDex {
         listOf(
             ImproveSnsTimelineUI::class.java,
             SnsUserUI::class.java
-        ).forEach { clazz -> clazz.reflekt().firstMethod {
-            name = "onCreate"
-            parameters(Bundle::class)
-        }.hookAfter {
-            val activity = thisObject as Activity
-            scheduleAttach(activity)
-        } }
+        ).forEach { clazz ->
+            clazz.reflekt().firstMethod {
+                name = "onCreate"
+                parameters(Bundle::class)
+            }.hookAfter {
+                val activity = thisObject as Activity
+                scheduleAttach(activity)
+            }
+        }
 
         if (!methodGetTimeString.isPlaceholder) methodGetTimeString.hookAfter {
             val snsInfo = thisObject
@@ -93,7 +95,7 @@ object DisplayDetails : ClickableFeature(), IResolveDex {
         }
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             var textFormatInput by remember { mutableStateOf(textFormat) }
             var timeFormatInput by remember { mutableStateOf(timeFormat) }

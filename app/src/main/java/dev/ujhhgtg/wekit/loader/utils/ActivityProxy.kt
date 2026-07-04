@@ -23,13 +23,11 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import dev.ujhhgtg.comptime.This
 import dev.ujhhgtg.comptime.nameOf
-import dev.ujhhgtg.reflekt.utils.hasClass
 import dev.ujhhgtg.reflekt.utils.makeAccessible
 import dev.ujhhgtg.wekit.constants.PackageNames
 import dev.ujhhgtg.wekit.utils.HostInfo
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.android.Intent
-import dev.ujhhgtg.wekit.utils.reflection.ClassLoaders
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
@@ -152,16 +150,7 @@ object ActivityProxy {
 
     object ActProxyMgr {
         const val ACTIVITY_PROXY_INTENT_TOKEN = "wekit_target_intent_token"
-        private const val CANDIDATE1 = "${PackageNames.WECHAT}.plugin.appbrand.ipc.AppBrandProxyTransparentUI"
-        private const val CANDIDATE2 = "${PackageNames.WECHAT}.plugin.facedetect.ui.FaceTransparentStubUI"
-        val STUB_DEFAULT_ACTIVITY by lazy {
-            if (ClassLoaders.HOST.hasClass(CANDIDATE1)) {
-                CANDIDATE1
-            } else {
-                WeLogger.w(TAG, "selecting fallback candidate for proxy stub activity, errors might occur")
-                CANDIDATE2
-            }
-        }
+        const val STUB_DEFAULT_ACTIVITY = "${PackageNames.WECHAT}.app.WeChatSplashActivity"
 
         fun isModuleProxyActivity(className: String?): Boolean =
             className?.startsWith(PackageNames.MODULE) == true

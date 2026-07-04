@@ -1,6 +1,7 @@
 package dev.ujhhgtg.wekit.features.items.batch
 
 import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
@@ -35,6 +36,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 @Feature(
     name = "批量打标签",
@@ -50,7 +52,7 @@ object BatchAddLabel : ClickableFeature() {
     /** Space out label modifications to avoid hammering the netscene dispatcher. */
     private const val MODIFY_INTERVAL_MS = 1000L
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         val friends = WeDatabaseApi.getFriends()
 
         showComposeDialog(context) {
@@ -162,7 +164,7 @@ object BatchAddLabel : ClickableFeature() {
                         }
                         WeLogger.i(TAG, "labeled $wxId with $labelName (${index + 1}/$total)")
                         completed.intValue++
-                        if (index < total - 1) delay(MODIFY_INTERVAL_MS)
+                        if (index < total - 1) delay(MODIFY_INTERVAL_MS.milliseconds)
                     }
 
                     done = true

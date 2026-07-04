@@ -1,13 +1,13 @@
 package dev.ujhhgtg.wekit.features.items.beautify
 
 import android.app.Activity
-import android.content.Context
 import android.os.SystemClock
 import android.view.Gravity
 import android.view.HapticFeedbackConstants
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import androidx.activity.ComponentActivity
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
@@ -72,7 +72,7 @@ import dev.ujhhgtg.wekit.ui.content.FloatingBottomBarDefaults
 import dev.ujhhgtg.wekit.ui.content.FloatingBottomBarItem
 import dev.ujhhgtg.wekit.ui.content.TextButton
 import dev.ujhhgtg.wekit.ui.content.rememberViewBackdrop
-import dev.ujhhgtg.wekit.ui.utils.AppTheme
+import dev.ujhhgtg.wekit.ui.utils.InjectedUiTheme
 import dev.ujhhgtg.wekit.ui.utils.LifecycleOwnerProvider
 import dev.ujhhgtg.wekit.ui.utils.setLifecycleOwner
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
@@ -88,7 +88,7 @@ object ReplaceNavigationBar : ClickableFeature(), IResolveDex {
     )
 
     @Stable
-    private val ICONS = listOf(
+    private val TAB_ITEMS = listOf(
         NavItem(MaterialSymbols.Outlined.Home, MaterialSymbols.OutlinedFilled.Home, "主页"),
         NavItem(MaterialSymbols.Outlined.Contacts, MaterialSymbols.OutlinedFilled.Contacts, "联系人"),
         NavItem(MaterialSymbols.Outlined.Explore, MaterialSymbols.OutlinedFilled.Explore, "发现"),
@@ -236,7 +236,7 @@ object ReplaceNavigationBar : ClickableFeature(), IResolveDex {
                 setLifecycleOwner(lifecycleOwner)
 
                 setContent {
-                    AppTheme {
+                    InjectedUiTheme {
                         val view = LocalView.current
                         var selectedIndex by selectedPageIndexState
                         val settledIndex by settledPageIndexState
@@ -257,7 +257,7 @@ object ReplaceNavigationBar : ClickableFeature(), IResolveDex {
                                     .height(56.dp),
                                 containerColor = backgroundColor
                             ) {
-                                ICONS.forEachIndexed { index, item ->
+                                TAB_ITEMS.forEachIndexed { index, item ->
                                     val isSelected = index == selectedIndex
                                     val isNext = index == selectedIndex + 1
 
@@ -364,7 +364,7 @@ object ReplaceNavigationBar : ClickableFeature(), IResolveDex {
                                     // glass. rememberLayerBackdrop would only capture Compose
                                     // pixels, of which there are none behind this overlay bar.
                                     backdrop = rememberViewBackdrop(viewPager),
-                                    tabsCount = ICONS.size,
+                                    tabsCount = TAB_ITEMS.size,
                                     isBlurEnabled = useBackdrop,
                                     blurRadius = blurRadius.dp,
                                     colors = FloatingBottomBarDefaults.colors(
@@ -374,7 +374,7 @@ object ReplaceNavigationBar : ClickableFeature(), IResolveDex {
                                         activeContentColor = activeColor
                                     )
                                 ) {
-                                    ICONS.forEachIndexed { index, item ->
+                                    TAB_ITEMS.forEachIndexed { index, item ->
                                         val isSelected = index == settledIndex
 
                                         FloatingBottomBarItem(
@@ -502,7 +502,7 @@ object ReplaceNavigationBar : ClickableFeature(), IResolveDex {
         )
     }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             var useFloatingInput by remember { mutableStateOf(useFloating) }
             var useBackdropInput by remember { mutableStateOf(useBackdrop) }

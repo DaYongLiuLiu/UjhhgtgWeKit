@@ -1,6 +1,5 @@
 package dev.ujhhgtg.wekit.features.items.chat
 
-import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
@@ -9,6 +8,7 @@ import android.text.Spanned
 import android.text.style.ReplacementSpan
 import android.view.View
 import android.widget.TextView
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -80,7 +80,7 @@ object DisplayGroupMemberRoles : ClickableFeature(), IResolveDex,
     private fun parseColor(value: String, fallback: String): Int =
         runCatching { value.toColorInt() }.getOrElse { fallback.toColorInt() }
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             var ob by remember { mutableStateOf(ownerBg) }
             var ab by remember { mutableStateOf(adminBg) }

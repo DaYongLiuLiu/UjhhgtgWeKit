@@ -62,17 +62,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceIn
 import androidx.compose.ui.util.fastRoundToInt
 import androidx.compose.ui.util.lerp
-import com.kyant.backdrop.Backdrop
-import com.kyant.backdrop.backdrops.layerBackdrop
-import com.kyant.backdrop.backdrops.rememberCombinedBackdrop
-import com.kyant.backdrop.backdrops.rememberLayerBackdrop
-import com.kyant.backdrop.drawBackdrop
-import com.kyant.backdrop.effects.blur
-import com.kyant.backdrop.effects.lens
-import com.kyant.backdrop.effects.vibrancy
-import com.kyant.backdrop.highlight.Highlight
-import com.kyant.backdrop.shadow.InnerShadow
-import com.kyant.backdrop.shadow.Shadow
+import top.yukonga.miuix.kmp.blur.Backdrop
+import top.yukonga.miuix.kmp.blur.blur
+import top.yukonga.miuix.kmp.blur.drawBackdrop
+import top.yukonga.miuix.kmp.blur.highlight.Highlight
+import top.yukonga.miuix.kmp.blur.layerBackdrop
+import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
+import dev.ujhhgtg.wekit.ui.content.liquid.InnerShadow
+import dev.ujhhgtg.wekit.ui.content.liquid.innerShadow
+import dev.ujhhgtg.wekit.ui.content.liquid.lens
+import dev.ujhhgtg.wekit.ui.content.liquid.rememberCombinedBackdrop
+import dev.ujhhgtg.wekit.ui.content.liquid.vibrancy
 import dev.ujhhgtg.wekit.ui.content.animation.DampedDragAnimation
 import dev.ujhhgtg.wekit.ui.content.animation.InteractiveHighlight
 import kotlinx.coroutines.flow.collectLatest
@@ -340,10 +340,14 @@ fun FloatingBottomBar(
                                 effects = {
                                     if (!isGlassTransparent) {
                                         vibrancy()
-                                        blur(blurRadius.toPx())
-                                        lens(24.dp.toPx(), 24.dp.toPx())
+                                        blur(blurRadius.toPx(), blurRadius.toPx())
+                                        lens(
+                                            refractionHeight = 24.dp.toPx(),
+                                            refractionAmount = 24.dp.toPx(),
+                                        )
                                     }
                                 },
+                                highlight = { if (isGlassTransparent) null else Highlight.Default.copy(alpha = 0.75f) },
                                 layerBlock = {
                                     val width = size.width.coerceAtLeast(1f)
                                     val s = lerp(1f, 1f + 16.dp.toPx() / width, dampedDragAnimation.pressProgress)
@@ -384,8 +388,11 @@ fun FloatingBottomBar(
                             effects = {
                                 if (!isGlassTransparent) {
                                     vibrancy()
-                                    blur(blurRadius.toPx())
-                                    lens(24.dp.toPx(), 24.dp.toPx())
+                                    blur(blurRadius.toPx(), blurRadius.toPx())
+                                    lens(
+                                        refractionHeight = 24.dp.toPx(),
+                                        refractionAmount = 24.dp.toPx(),
+                                    )
                                 }
                             },
                             onDrawSurface = { drawRect(containerColor) },
@@ -421,20 +428,11 @@ fun FloatingBottomBar(
                                     refractionHeight = 10.dp.toPx() * progress,
                                     refractionAmount = 14.dp.toPx() * progress,
                                     depthEffect = true,
-                                    chromaticAberration = true,
+                                    chromaticAberration = 0.5f,
                                 )
                             },
                             highlight = {
                                 Highlight.Default.copy(alpha = dampedDragAnimation.pressProgress)
-                            },
-                            shadow = {
-                                Shadow(alpha = dampedDragAnimation.pressProgress)
-                            },
-                            innerShadow = {
-                                InnerShadow(
-                                    radius = 8.dp * dampedDragAnimation.pressProgress,
-                                    alpha = dampedDragAnimation.pressProgress,
-                                )
                             },
                             layerBlock = {
                                 scaleX = dampedDragAnimation.scaleX
@@ -452,6 +450,15 @@ fun FloatingBottomBar(
                                 drawRect(Color.Black.copy(alpha = 0.03f * progress))
                             },
                         )
+                        // miuix's drawBackdrop has no innerShadow param (kyant did); apply it as a
+                        // separate modifier, matching InstallerX's liquid-glass FloatingBottomBar.
+                        .innerShadow(shape = pillShape) {
+                            InnerShadow(
+                                radius = 8.dp * dampedDragAnimation.pressProgress,
+                                color = Color.Black.copy(alpha = 0.15f),
+                                alpha = dampedDragAnimation.pressProgress,
+                            )
+                        }
                         .height(56.dp)
                         .width(tabWidthDp)
                 )

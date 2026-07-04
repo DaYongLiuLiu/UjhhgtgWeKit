@@ -1,6 +1,6 @@
 package dev.ujhhgtg.wekit.features.items.scripting_java
 
-import android.content.Context
+import androidx.activity.ComponentActivity
 import dev.ujhhgtg.wekit.activity.TransparentActivity
 import dev.ujhhgtg.wekit.features.core.ClickableFeature
 import dev.ujhhgtg.wekit.features.core.Feature
@@ -11,7 +11,7 @@ object DecompileBeanShellSnapshot : ClickableFeature() {
 
     override val noSwitchWidget = true
 
-    override fun onClick(context: Context) {
+    override fun onClick(context: ComponentActivity) {
         TransparentActivity.launch(context) {
             val selectFileLauncher = registerBshSnapshotDecompileLaunchers { finish() }
             selectFileLauncher.launch("*/*")
