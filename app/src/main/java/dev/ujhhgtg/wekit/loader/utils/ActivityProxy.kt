@@ -155,7 +155,9 @@ object ActivityProxy {
         private const val CANDIDATE1 = "${PackageNames.WECHAT}.plugin.appbrand.ipc.AppBrandProxyTransparentUI"
         private const val CANDIDATE2 = "${PackageNames.WECHAT}.plugin.facedetect.ui.FaceTransparentStubUI"
         val STUB_DEFAULT_ACTIVITY by lazy {
-            if (ClassLoaders.HOST.hasClass(CANDIDATE1)) { CANDIDATE1 } else {
+            if (ClassLoaders.HOST.hasClass(CANDIDATE1)) {
+                CANDIDATE1
+            } else {
                 WeLogger.w(TAG, "selecting fallback candidate for proxy stub activity, errors might occur")
                 CANDIDATE2
             }
@@ -298,7 +300,7 @@ object ActivityProxy {
                 base.newActivity(cl, resolvedClass, resolvedIntent)
             } catch (e: ClassNotFoundException) {
                 if (ActProxyMgr.isModuleProxyActivity(resolvedClass)) {
-                    checkNotNull(javaClass.classLoader).loadClass(resolvedClass)
+                    javaClass.classLoader!!.loadClass(resolvedClass)
                         .getDeclaredConstructor().newInstance() as Activity
                 } else throw e
             }

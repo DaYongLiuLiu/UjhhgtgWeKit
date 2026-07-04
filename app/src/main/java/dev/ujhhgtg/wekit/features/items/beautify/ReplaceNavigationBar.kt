@@ -29,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Stable
@@ -56,7 +57,6 @@ import com.composables.icons.materialsymbols.outlinedfilled.Contacts
 import com.composables.icons.materialsymbols.outlinedfilled.Explore
 import com.composables.icons.materialsymbols.outlinedfilled.Home
 import com.composables.icons.materialsymbols.outlinedfilled.Person
-import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import dev.ujhhgtg.reflekt.reflekt
 import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
@@ -71,10 +71,12 @@ import dev.ujhhgtg.wekit.ui.content.FloatingBottomBar
 import dev.ujhhgtg.wekit.ui.content.FloatingBottomBarDefaults
 import dev.ujhhgtg.wekit.ui.content.FloatingBottomBarItem
 import dev.ujhhgtg.wekit.ui.content.TextButton
+import dev.ujhhgtg.wekit.ui.content.rememberViewBackdrop
 import dev.ujhhgtg.wekit.ui.utils.AppTheme
 import dev.ujhhgtg.wekit.ui.utils.LifecycleOwnerProvider
 import dev.ujhhgtg.wekit.ui.utils.setLifecycleOwner
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
+import kotlin.math.roundToInt
 
 @Feature(name = "美化首页底部导航栏", categories = ["界面美化"], description = "将首页底部导航栏替换为 Material Design 或 Backdrop 风格")
 object ReplaceNavigationBar : ClickableFeature(), IResolveDex {
@@ -97,6 +99,10 @@ object ReplaceNavigationBar : ClickableFeature(), IResolveDex {
     private var useBackdrop by prefOption("nav_bar_use_backdrop", false)
     private var showFinderBadge by prefOption("nav_bar_show_finder_badge", true)
     private var hideLabels by prefOption("nav_bar_hide_labels", false)
+    private var blurRadius by prefOption("nav_bar_blur_radius", 8)
+
+    private const val MIN_BLUR_RADIUS = 0
+    private const val MAX_BLUR_RADIUS = 40
 
     // Matches the double-tap threshold WeChat's own tab listener (f8/r8) uses.
     private const val DOUBLE_TAP_WINDOW_MS = 300L
@@ -208,9 +214,11 @@ object ReplaceNavigationBar : ClickableFeature(), IResolveDex {
                             pageDidDrag = true
                             isSwipingState.value = true
                         }
+
                         2 -> { // SETTLING: keep tracking only if this settle came from a drag
                             isSwipingState.value = pageDidDrag
                         }
+
                         else -> { // IDLE
                             isSwipingState.value = false
                             pageDidDrag = false
@@ -222,204 +230,209 @@ object ReplaceNavigationBar : ClickableFeature(), IResolveDex {
             val useBackdrop = useBackdrop
             val showFinderBadge = showFinderBadge
             val hideLabels = hideLabels
+            val blurRadius = blurRadius
 
             val composeView = ComposeView(activity).apply {
                 setLifecycleOwner(lifecycleOwner)
 
                 setContent {
-                        AppTheme {
-                            val view = LocalView.current
-                            var selectedIndex by selectedPageIndexState
-                            val settledIndex by settledPageIndexState
-                            val targetIndex by targetPageIndexState
-                            val unreadCount by unreadCountState
-                            val finderUnreadCount by finderUnreadCountState
-                            val showFinderDot by showFinderDotState
+                    AppTheme {
+                        val view = LocalView.current
+                        var selectedIndex by selectedPageIndexState
+                        val settledIndex by settledPageIndexState
+                        val targetIndex by targetPageIndexState
+                        val unreadCount by unreadCountState
+                        val finderUnreadCount by finderUnreadCountState
+                        val showFinderDot by showFinderDotState
 
-                            val backgroundColor = if (isSystemInDarkTheme()) Color(0xFF191919) else Color(0xFFF7F7F7)
-                            val activeColor = MaterialTheme.colorScheme.primary
-                            val inactiveColor = if (isSystemInDarkTheme()) Color(0xFF999999) else Color(0xFF181818)
+                        val backgroundColor = if (isSystemInDarkTheme()) Color(0xFF191919) else Color(0xFFF7F7F7)
+                        val activeColor = MaterialTheme.colorScheme.primary
+                        val inactiveColor = if (isSystemInDarkTheme()) Color(0xFF999999) else Color(0xFF181818)
 
-                            if (!useFloating) {
-                                val offset by scrollOffsetState
-                                NavigationBar(
+                        if (!useFloating) {
+                            val offset by scrollOffsetState
+                            NavigationBar(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(56.dp),
+                                containerColor = backgroundColor
+                            ) {
+                                ICONS.forEachIndexed { index, item ->
+                                    val isSelected = index == selectedIndex
+                                    val isNext = index == selectedIndex + 1
+
+                                    val tint = when {
+                                        isSelected -> lerpColor(
+                                            activeColor,
+                                            inactiveColor,
+                                            offset
+                                        )
+
+                                        isNext -> lerpColor(
+                                            inactiveColor,
+                                            activeColor,
+                                            offset
+                                        )
+
+                                        else -> inactiveColor
+                                    }
+
+                                    val showFilled = if (offset < 0.5f) isSelected else isNext
+
+                                    NavigationBarItem(
+                                        selected = isSelected && offset < 0.5f,
+                                        onClick = {
+                                            view.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK)
+                                            onTabClicked(index)
+                                        },
+                                        icon = {
+                                            BadgedBox(
+                                                badge = {
+                                                    if (index == 0 && unreadCount > 0) {
+                                                        Badge(containerColor = Color(0xFFFF3B30)) {
+                                                            Text(
+                                                                if (unreadCount <= 99) unreadCount.toString() else "99+",
+                                                                color = Color.White, fontSize = 10.sp
+                                                            )
+                                                        }
+                                                    } else if (index == 2 && showFinderBadge) {
+                                                        if (finderUnreadCount > 0) {
+                                                            Badge(containerColor = Color(0xFFFF3B30)) {
+                                                                Text(
+                                                                    if (finderUnreadCount <= 99) finderUnreadCount.toString() else "99+",
+                                                                    color = Color.White, fontSize = 10.sp
+                                                                )
+                                                            }
+                                                        } else if (showFinderDot) {
+                                                            Badge(containerColor = Color(0xFFFF3B30))
+                                                        }
+                                                    }
+                                                }
+                                            ) {
+                                                Crossfade(
+                                                    targetState = showFilled,
+                                                    animationSpec = tween(200),
+                                                    label = "navIcon"
+                                                ) { filled ->
+                                                    Icon(
+                                                        imageVector = if (filled) item.filled else item.outlined,
+                                                        contentDescription = item.label,
+                                                        tint = tint
+                                                    )
+                                                }
+                                            }
+                                        },
+                                        label = null,
+                                        alwaysShowLabel = false,
+                                        colors = NavigationBarItemDefaults.colors(
+                                            indicatorColor = activeColor.copy(alpha = 0.15f),
+                                            selectedIconColor = activeColor,
+                                            unselectedIconColor = inactiveColor,
+                                            selectedTextColor = activeColor,
+                                            unselectedTextColor = inactiveColor
+                                        )
+                                    )
+                                }
+                            }
+                        } else {
+                            Box(
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                FloatingBottomBar(
                                     modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(56.dp),
-                                    containerColor = backgroundColor
+                                        .align(Alignment.BottomCenter)
+                                        .clickable(
+                                            interactionSource = remember { MutableInteractionSource() },
+                                            indication = null,
+                                            onClick = {},
+                                        )
+                                        .padding(
+                                            bottom = 12.dp + WindowInsets.navigationBars.asPaddingValues()
+                                                .calculateBottomPadding()
+                                        ),
+                                    // Spring target: on a tap this is the tapped tab, so the
+                                    // pill bulges and slides across. During a swipe the gate
+                                    // below hands position control to `progress` instead.
+                                    selectedIndex = { targetIndex },
+                                    // Drive the indicator from the pager's live fractional
+                                    // scroll position so the pill tracks the content 1:1 in
+                                    // both directions, like the non-floating bar's crossfade.
+                                    progress = { selectedIndex + scrollOffsetState.floatValue },
+                                    isTracking = { isSwipingState.value },
+                                    onSelected = { navigateToTab(it) },
+                                    // Sample WeChat's real content (native ViewPager) into the
+                                    // glass. rememberLayerBackdrop would only capture Compose
+                                    // pixels, of which there are none behind this overlay bar.
+                                    backdrop = rememberViewBackdrop(viewPager),
+                                    tabsCount = ICONS.size,
+                                    isBlurEnabled = useBackdrop,
+                                    blurRadius = blurRadius.dp,
+                                    colors = FloatingBottomBarDefaults.colors(
+                                        containerColor = backgroundColor,
+                                        indicatorColor = activeColor,
+                                        contentColor = inactiveColor,
+                                        activeContentColor = activeColor
+                                    )
                                 ) {
                                     ICONS.forEachIndexed { index, item ->
-                                        val isSelected = index == selectedIndex
-                                        val isNext = index == selectedIndex + 1
+                                        val isSelected = index == settledIndex
 
-                                        val tint = when {
-                                            isSelected -> lerpColor(
-                                                activeColor,
-                                                inactiveColor,
-                                                offset
-                                            )
-
-                                            isNext -> lerpColor(
-                                                inactiveColor,
-                                                activeColor,
-                                                offset
-                                            )
-
-                                            else -> inactiveColor
-                                        }
-
-                                        val showFilled = if (offset < 0.5f) isSelected else isNext
-
-                                        NavigationBarItem(
-                                            selected = isSelected && offset < 0.5f,
+                                        FloatingBottomBarItem(
                                             onClick = {
                                                 view.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK)
                                                 onTabClicked(index)
                                             },
-                                            icon = {
-                                                BadgedBox(
-                                                    badge = {
-                                                        if (index == 0 && unreadCount > 0) {
+                                            modifier = Modifier.defaultMinSize(minWidth = 76.dp)
+                                        ) {
+                                            BadgedBox(
+                                                badge = {
+                                                    if (index == 0 && unreadCount > 0) {
+                                                        Badge(containerColor = Color(0xFFFF3B30)) {
+                                                            Text(
+                                                                if (unreadCount <= 99) unreadCount.toString() else "99+",
+                                                                color = Color.White, fontSize = 10.sp
+                                                            )
+                                                        }
+                                                    } else if (index == 2 && showFinderBadge) {
+                                                        if (finderUnreadCount > 0) {
                                                             Badge(containerColor = Color(0xFFFF3B30)) {
                                                                 Text(
-                                                                    if (unreadCount <= 99) unreadCount.toString() else "99+",
+                                                                    if (finderUnreadCount <= 99) finderUnreadCount.toString() else "99+",
                                                                     color = Color.White, fontSize = 10.sp
                                                                 )
                                                             }
-                                                        } else if (index == 2 && showFinderBadge) {
-                                                            if (finderUnreadCount > 0) {
-                                                                Badge(containerColor = Color(0xFFFF3B30)) {
-                                                                    Text(
-                                                                        if (finderUnreadCount <= 99) finderUnreadCount.toString() else "99+",
-                                                                        color = Color.White, fontSize = 10.sp
-                                                                    )
-                                                                }
-                                                            } else if (showFinderDot) {
-                                                                Badge(containerColor = Color(0xFFFF3B30))
-                                                            }
+                                                        } else if (showFinderDot) {
+                                                            Badge(containerColor = Color(0xFFFF3B30))
                                                         }
                                                     }
-                                                ) {
-                                                    Crossfade(
-                                                        targetState = showFilled,
-                                                        animationSpec = tween(200),
-                                                        label = "navIcon"
-                                                    ) { filled ->
-                                                        Icon(
-                                                            imageVector = if (filled) item.filled else item.outlined,
-                                                            contentDescription = item.label,
-                                                            tint = tint
-                                                        )
-                                                    }
                                                 }
-                                            },
-                                            label = null,
-                                            alwaysShowLabel = false,
-                                            colors = NavigationBarItemDefaults.colors(
-                                                indicatorColor = activeColor.copy(alpha = 0.15f),
-                                                selectedIconColor = activeColor,
-                                                unselectedIconColor = inactiveColor,
-                                                selectedTextColor = activeColor,
-                                                unselectedTextColor = inactiveColor
-                                            )
-                                        )
-                                    }
-                                }
-                            } else {
-                                Box(
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    FloatingBottomBar(
-                                        modifier = Modifier
-                                            .align(Alignment.BottomCenter)
-                                            .clickable(
-                                                interactionSource = remember { MutableInteractionSource() },
-                                                indication = null,
-                                                onClick = {},
-                                            )
-                                            .padding(
-                                                bottom = 12.dp + WindowInsets.navigationBars.asPaddingValues()
-                                                    .calculateBottomPadding()
-                                            ),
-                                        // Spring target: on a tap this is the tapped tab, so the
-                                        // pill bulges and slides across. During a swipe the gate
-                                        // below hands position control to `progress` instead.
-                                        selectedIndex = { targetIndex },
-                                        // Drive the indicator from the pager's live fractional
-                                        // scroll position so the pill tracks the content 1:1 in
-                                        // both directions, like the non-floating bar's crossfade.
-                                        progress = { selectedIndex + scrollOffsetState.floatValue },
-                                        isTracking = { isSwipingState.value },
-                                        onSelected = { navigateToTab(it) },
-                                        backdrop = rememberLayerBackdrop(),
-                                        tabsCount = ICONS.size,
-                                        isBlurEnabled = useBackdrop,
-                                        colors = FloatingBottomBarDefaults.colors(
-                                            containerColor = backgroundColor,
-                                            indicatorColor = activeColor,
-                                            contentColor = inactiveColor,
-                                            activeContentColor = activeColor
-                                        )
-                                    ) {
-                                        ICONS.forEachIndexed { index, item ->
-                                            val isSelected = index == settledIndex
-
-                                            FloatingBottomBarItem(
-                                                onClick = {
-                                                    view.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK)
-                                                    onTabClicked(index)
-                                                },
-                                                modifier = Modifier.defaultMinSize(minWidth = 76.dp)
                                             ) {
-                                                BadgedBox(
-                                                    badge = {
-                                                        if (index == 0 && unreadCount > 0) {
-                                                            Badge(containerColor = Color(0xFFFF3B30)) {
-                                                                Text(
-                                                                    if (unreadCount <= 99) unreadCount.toString() else "99+",
-                                                                    color = Color.White, fontSize = 10.sp
-                                                                )
-                                                            }
-                                                        } else if (index == 2 && showFinderBadge) {
-                                                            if (finderUnreadCount > 0) {
-                                                                Badge(containerColor = Color(0xFFFF3B30)) {
-                                                                    Text(
-                                                                        if (finderUnreadCount <= 99) finderUnreadCount.toString() else "99+",
-                                                                        color = Color.White, fontSize = 10.sp
-                                                                    )
-                                                                }
-                                                            } else if (showFinderDot) {
-                                                                Badge(containerColor = Color(0xFFFF3B30))
-                                                            }
-                                                        }
-                                                    }
-                                                ) {
-                                                    Crossfade(
-                                                        targetState = isSelected,
-                                                        animationSpec = tween(200),
-                                                        label = "navIconFloating"
-                                                    ) { selected ->
-                                                        Icon(
-                                                            imageVector = if (selected) item.filled else item.outlined,
-                                                            contentDescription = item.label
-                                                        )
-                                                    }
-                                                }
-                                                if (!hideLabels) {
-                                                    Text(
-                                                        text = item.label,
-                                                        fontSize = 11.sp,
-                                                        lineHeight = 14.sp,
-                                                        maxLines = 1,
-                                                        softWrap = false,
-                                                        overflow = TextOverflow.Visible
+                                                Crossfade(
+                                                    targetState = isSelected,
+                                                    animationSpec = tween(200),
+                                                    label = "navIconFloating"
+                                                ) { selected ->
+                                                    Icon(
+                                                        imageVector = if (selected) item.filled else item.outlined,
+                                                        contentDescription = item.label
                                                     )
                                                 }
+                                            }
+                                            if (!hideLabels) {
+                                                Text(
+                                                    text = item.label,
+                                                    fontSize = 11.sp,
+                                                    lineHeight = 14.sp,
+                                                    maxLines = 1,
+                                                    softWrap = false,
+                                                    overflow = TextOverflow.Visible
+                                                )
                                             }
                                         }
                                     }
                                 }
                             }
+                        }
                     }
                 }
             }
@@ -495,6 +508,7 @@ object ReplaceNavigationBar : ClickableFeature(), IResolveDex {
             var useBackdropInput by remember { mutableStateOf(useBackdrop) }
             var showFinderBadgeInput by remember { mutableStateOf(showFinderBadge) }
             var hideLabelsInput by remember { mutableStateOf(hideLabels) }
+            var blurRadiusInput by remember { mutableFloatStateOf(blurRadius.toFloat()) }
 
             AlertDialogContent(
                 title = { Text("美化首页底部导航栏") },
@@ -517,6 +531,22 @@ object ReplaceNavigationBar : ClickableFeature(), IResolveDex {
                                     { useBackdropInput = it })
                             }
                         )
+                        if (useBackdropInput) {
+                            ListItem(
+                                headlineContent = {
+                                    val r = blurRadiusInput.roundToInt()
+                                    Text(if (r <= 0) "模糊半径: 关闭 (完全透明)" else "模糊半径: $r")
+                                },
+                                supportingContent = {
+                                    Slider(
+                                        value = blurRadiusInput,
+                                        onValueChange = { blurRadiusInput = it },
+                                        valueRange = MIN_BLUR_RADIUS.toFloat()..MAX_BLUR_RADIUS.toFloat(),
+                                        steps = MAX_BLUR_RADIUS - MIN_BLUR_RADIUS - 1
+                                    )
+                                }
+                            )
+                        }
                         ListItem(
                             headlineContent = { Text("隐藏标签文本") },
                             supportingContent = { Text("需启用「使用悬浮底栏」") },
@@ -544,6 +574,7 @@ object ReplaceNavigationBar : ClickableFeature(), IResolveDex {
                         useBackdrop = useBackdropInput
                         hideLabels = hideLabelsInput
                         showFinderBadge = showFinderBadgeInput
+                        blurRadius = blurRadiusInput.roundToInt()
                         onDismiss()
                     }) { Text("确定") }
                 }

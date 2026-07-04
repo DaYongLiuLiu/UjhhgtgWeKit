@@ -21,6 +21,7 @@ import dev.ujhhgtg.reflekt.reflekt
 import dev.ujhhgtg.reflekt.utils.isBuiltin
 import dev.ujhhgtg.reflekt.utils.toClassOrNull
 import dev.ujhhgtg.wekit.BuildConfig
+import dev.ujhhgtg.wekit.activity.SettingsActivity
 import dev.ujhhgtg.wekit.constants.PackageNames
 import dev.ujhhgtg.wekit.constants.Preferences
 import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
@@ -35,6 +36,7 @@ import dev.ujhhgtg.wekit.utils.reflection.int
 import org.luckypray.dexkit.DexKitBridge
 import org.luckypray.dexkit.query.enums.StringMatchType
 import java.lang.reflect.Modifier
+
 @Feature(name = "设置模块入口", categories = ["API"])
 object WeSettingsInjector : ApiFeature(), IResolveDex, WeChatInputBarApi.IInputBarListener {
 
@@ -381,25 +383,27 @@ object WeSettingsInjector : ApiFeature(), IResolveDex, WeChatInputBarApi.IInputB
             mGetPageGroupItemClass, mGetLevel, mOnClick, mGetKey, mGetSettingLocation, mGetNameResId, mGetGroupNameResId, mGetSwitchState, mGetSwitchProperty
         )
 
-        settingsManager.createItem {
+        val item1 = settingsManager.createItem {
             key = "SettingGroup_Main_WeKitTest1"
             title = "WeKit 设置"
             level = 1
             groupTitle = "插件"
             pageClass = SettingGroupMain::class.java
             parentClass = SettingAdditionHeaderSearch::class.java
-            childClass = SettingGroupPersonalInfo::class.java
             onClick = { openSettingsDialog(it) }
         }
 
-//        val item2 = settingsManager.createItem {
-//            key = "SettingGroup_Main_WeKitTest2"
-//            title = "测试 - WeKit 设置"
-//            level = 1
-//            pageClass = SettingGroupMain::class.java
-//            parentClass = item1
-//            onClick = { openSettingsDialog(it) }
-//        }
+        settingsManager.createItem {
+            key = "SettingGroup_Main_WeKitTest2"
+            title = "WeKit 设置 (新)"
+            level = 1
+            pageClass = SettingGroupMain::class.java
+            parentClass = item1
+            childClass = SettingGroupPersonalInfo::class.java
+            onClick = {
+                it.startActivity(Intent(it, SettingsActivity::class.java))
+            }
+        }
 //
 //        val item3 = settingsManager.createItem {
 //            key = "SettingGroup_Main_WeKitTest3"

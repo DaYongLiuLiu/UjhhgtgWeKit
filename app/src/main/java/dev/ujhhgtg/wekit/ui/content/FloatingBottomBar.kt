@@ -57,6 +57,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceIn
 import androidx.compose.ui.util.fastRoundToInt
@@ -159,13 +160,23 @@ fun FloatingBottomBar(
     // *tap* still bulges and slides rather than teleporting.
     isTracking: (() -> Boolean)? = null,
     isBlurEnabled: Boolean = true,
+    // Radius of the glass blur, in dp. Higher = frostier / less legible content behind the bar.
+    blurRadius: Dp = 8.dp,
     colors: FloatingBottomBarColors = FloatingBottomBarDefaults.colors(),
     content: @Composable RowScope.() -> Unit
 ) {
     val isInDark = isSystemInDarkTheme()
     val pillShape = remember { CircleShape }
-    // The glass layer is translucent so WeChat's content shows through it.
-    val containerColor = if (isBlurEnabled) colors.containerColor.copy(0.4f) else colors.containerColor
+    // A zero radius means "no glass at all": drop the blur, the frost tint and the lens refraction
+    // so the panel is fully transparent and WeChat's content shows through untouched.
+    val isGlassTransparent = isBlurEnabled && blurRadius <= 0.dp
+    // The glass layer is translucent so WeChat's content shows through it. At radius 0 the surface
+    // tint is removed entirely.
+    val containerColor = when {
+        isGlassTransparent -> Color.Transparent
+        isBlurEnabled -> colors.containerColor.copy(0.4f)
+        else -> colors.containerColor
+    }
 
     val tabsBackdrop = rememberLayerBackdrop()
     val density = LocalDensity.current
@@ -327,9 +338,11 @@ fun FloatingBottomBar(
                                 backdrop = backdrop,
                                 shape = { pillShape },
                                 effects = {
-                                    vibrancy()
-                                    blur(8.dp.toPx())
-                                    lens(24.dp.toPx(), 24.dp.toPx())
+                                    if (!isGlassTransparent) {
+                                        vibrancy()
+                                        blur(blurRadius.toPx())
+                                        lens(24.dp.toPx(), 24.dp.toPx())
+                                    }
                                 },
                                 layerBlock = {
                                     val width = size.width.coerceAtLeast(1f)
@@ -369,9 +382,11 @@ fun FloatingBottomBar(
                             backdrop = backdrop,
                             shape = { pillShape },
                             effects = {
-                                vibrancy()
-                                blur(8.dp.toPx())
-                                lens(24.dp.toPx(), 24.dp.toPx())
+                                if (!isGlassTransparent) {
+                                    vibrancy()
+                                    blur(blurRadius.toPx())
+                                    lens(24.dp.toPx(), 24.dp.toPx())
+                                }
                             },
                             onDrawSurface = { drawRect(containerColor) },
                         )
