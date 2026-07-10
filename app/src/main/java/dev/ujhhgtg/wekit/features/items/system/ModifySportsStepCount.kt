@@ -2,12 +2,21 @@ package dev.ujhhgtg.wekit.features.items.system
 
 import android.content.Context
 import androidx.activity.ComponentActivity
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import dev.ujhhgtg.reflekt.utils.createInstance
 import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
@@ -16,12 +25,15 @@ import dev.ujhhgtg.wekit.features.core.Feature
 import dev.ujhhgtg.wekit.preferences.WePrefs.Companion.prefOption
 import dev.ujhhgtg.wekit.ui.content.AlertDialogContent
 import dev.ujhhgtg.wekit.ui.content.Button
+import dev.ujhhgtg.wekit.ui.content.DefaultColumn
 import dev.ujhhgtg.wekit.ui.content.TextButton
 import dev.ujhhgtg.wekit.ui.utils.showComposeDialog
 import dev.ujhhgtg.wekit.utils.android.showToast
 
 @Feature(name = "修改运动步数", categories = ["系统与隐私"], description = "修改微信获取到的或手动上传运动步数")
 object ModifySportsStepCount : ClickableFeature(), IResolveDex {
+
+    enum class PassiveMode { FIXED, MULTIPLIER }
 
     private val methodGetSteps by dexMethod {
         searchPackages("com.tencent.mm.plugin.sport.model")
@@ -37,37 +49,104 @@ object ModifySportsStepCount : ClickableFeature(), IResolveDex {
     }
 
     override fun onEnable() {
-        methodGetSteps.hookBefore {
-            val count = stepCount
-            if (count < 0) return@hookBefore
-            result = count
+        methodGetSteps.hookAfter {
+            val value = passiveValue
+            if (value < 0) return@hookAfter
+            result = when (passiveMode) {
+                PassiveMode.FIXED -> value
+                PassiveMode.MULTIPLIER -> (result as Long) * value
+            }
         }
     }
 
-    private var stepCount by prefOption("step_count", -1L)
+    private var passiveModeStr by prefOption("step_passive_mode", PassiveMode.FIXED.name)
+    private var passiveMode: PassiveMode
+        get() = runCatching { PassiveMode.valueOf(passiveModeStr) }.getOrDefault(PassiveMode.FIXED)
+        set(v) { passiveModeStr = v.name }
+
+    private var passiveValue by prefOption("step_passive_value", -1L)
 
     override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
-            var stepCountInput by remember { mutableStateOf(stepCount.toString()) }
+            var modeState by remember { mutableStateOf(passiveMode) }
+            var passiveInput by remember {
+                mutableStateOf(if (passiveValue >= 0) passiveValue.toString() else "")
+            }
+            var activeInput by remember { mutableStateOf("") }
+            val activeIsEmpty = activeInput.isEmpty()
 
             AlertDialogContent(
-                title = { Text(text = "修改运动步数") },
+                title = { Text("修改运动步数") },
                 text = {
-                    TextField(
-                        value = stepCountInput,
-                        onValueChange = {
-                            stepCountInput = it.filter { c -> c.isDigit() }.trim()
-                        },
-                        label = { Text("步数") }
-                    )
+                    DefaultColumn {
+                        // 被动模式: 固定 / 倍率
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("被动上传模式", modifier = Modifier.weight(1f))
+                            SingleChoiceSegmentedButtonRow {
+                                PassiveMode.entries.forEachIndexed { index, mode ->
+                                    SegmentedButton(
+                                        selected = modeState == mode,
+                                        onClick = { modeState = mode },
+                                        shape = SegmentedButtonDefaults.itemShape(
+                                            index, PassiveMode.entries.size
+                                        )
+                                    ) {
+                                        Text(if (mode == PassiveMode.FIXED) "固定" else "倍率")
+                                    }
+                                }
+                            }
+                        }
+
+                        // 被动值
+                        TextField(
+                            modifier = Modifier.fillMaxWidth(),
+                            value = passiveInput,
+                            onValueChange = {
+                                passiveInput = it.filter { c -> c.isDigit() }.trim()
+                            },
+                            label = { Text("被动上传值 (固定值或倍率)") }
+                        )
+
+                        // 主动值 + 立即上传
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            TextField(
+                                modifier = Modifier.weight(1f),
+                                value = activeInput,
+                                onValueChange = {
+                                    activeInput = it.filter { c -> c.isDigit() }.trim()
+                                },
+                                label = { Text("主动上传值") },
+                            )
+                            Button(
+                                enabled = !activeIsEmpty,
+                                onClick = {
+                                    val count = activeInput.toLongOrNull() ?: run {
+                                        showToast("格式不正确!")
+                                        return@Button
+                                    }
+                                    val sportsMan =
+                                        methodUploadSteps.method.declaringClass.createInstance()
+                                    val ok =
+                                        methodUploadSteps.method.invoke(sportsMan, count) as Boolean
+                                    showToast(context, "已上传! 返回结果: ${if (ok) "成功" else "失败"}")
+                                }
+                            ) {
+                                Text("上传")
+                            }
+                        }
+                    }
                 },
                 confirmButton = {
                     Button(onClick = {
-                        val count = stepCountInput.toLongOrNull() ?: run {
-                            showToast("格式不正确!")
-                            return@Button
-                        }
-                        stepCount = count
+                        passiveMode = modeState
+                        passiveValue = passiveInput.toLongOrNull() ?: -1L
                         onDismiss()
                     }) {
                         Text("保存")
@@ -76,18 +155,6 @@ object ModifySportsStepCount : ClickableFeature(), IResolveDex {
                 dismissButton = {
                     TextButton(onDismiss) {
                         Text("取消")
-                    }
-
-                    TextButton(onClick = {
-                        val count = stepCountInput.toLongOrNull() ?: run {
-                            showToast("格式不正确!")
-                            return@TextButton
-                        }
-                        val sportsMan = methodUploadSteps.method.declaringClass.createInstance()
-                        val result = methodUploadSteps.method.invoke(sportsMan, count) as Boolean
-                        showToast(context, "已上传! 返回结果: ${if (result) "成功" else "失败"}")
-                    }) {
-                        Text("立即上传")
                     }
                 }
             )

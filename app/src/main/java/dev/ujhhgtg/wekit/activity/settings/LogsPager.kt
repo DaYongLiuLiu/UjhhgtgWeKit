@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
 import com.composables.icons.materialsymbols.MaterialSymbols
+import com.composables.icons.materialsymbols.outlined.Delete_sweep
 import com.composables.icons.materialsymbols.outlined.Expand_more
 import com.composables.icons.materialsymbols.outlined.More_vert
 import com.composables.icons.materialsymbols.outlined.Refresh
@@ -101,7 +102,7 @@ import kotlin.io.path.name
 import kotlin.io.path.readText
 import androidx.compose.animation.core.tween as animTween
 
-private val LOGS_TAG = "SettingsActivity"
+private const val LOGS_TAG = "SettingsActivity"
 
 /** Which log kind a page is showing. */
 private enum class LogKind { RUN, CRASH }
@@ -355,6 +356,22 @@ fun LogsPager() {
                                         scope.launch {
                                             val end = (listState.layoutInfo.totalItemsCount - 1).coerceAtLeast(0)
                                             listState.animateScrollToItem(end)
+                                        }
+                                    },
+                                ),
+                                DropdownItem(
+                                    text = "清空",
+                                    icon = { m -> Icon(MaterialSymbols.Outlined.Delete_sweep, null, m) },
+                                    onClick = {
+                                        scope.launch {
+                                            withContext(Dispatchers.IO) {
+                                                when (kind) {
+                                                    LogKind.RUN -> WeLogger.allLogFiles
+                                                        .forEach { runCatching { it.toFile().delete() } }
+                                                    LogKind.CRASH -> CrashLogsManager.deleteAllCrashLogs()
+                                                }
+                                            }
+                                            refreshKey++
                                         }
                                     },
                                 ),
