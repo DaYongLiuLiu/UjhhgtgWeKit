@@ -226,8 +226,6 @@ object ChatToolbar : ClickableFeature(), IResolveDex {
                 val now = now()
                 if (now - lastToolListUpdateTime < 2.seconds) return@hookAfter
 
-                if (toolsState.value.isNotEmpty()) return@hookAfter
-
                 val tools = mutableListOf<Pair<String, MenuItem>>()
 
                 val appPanel = args[0] as LinearLayout
